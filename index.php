@@ -2,11 +2,17 @@
 /*
 Plugin Name: TodoPago para WooCommerce
 Description: TodoPago para Woocommerce.
-Version: 1.0
+Version: 1.2.1
 Author: Todo Pago
 */
 
+define('PLUGIN_VERSION','1.2.1');
+
 use TodoPago\Sdk as Sdk;
+
+require_once(dirname(__FILE__).'/lib/logger.php');
+require_once(dirname(__FILE__).'/lib/Sdk.php');
+require_once(dirname(__FILE__).'/lib/ControlFraude/ControlFraudeFactory.php');
 
 //Llama a la función woocommerce_todopago_init cuando se cargan los plugins. 0 es la prioridad.
 add_action('plugins_loaded', 'woocommerce_todopago_init', 0);
@@ -16,6 +22,8 @@ function woocommerce_todopago_init(){
 
   class WC_TodoPago_Gateway extends WC_Payment_Gateway{
     
+    public $tplogger;
+
     public function __construct(){
       $this -> id             = 'todopago';
       $this -> icon           = apply_filters('woocommerce_todopago_icon', plugins_url('images/todopago.jpg',__FILE__));
@@ -65,7 +73,8 @@ function woocommerce_todopago_init(){
       //Llamado al second step
       add_action('woocommerce_thankyou', array($this, 'second_step_todopago'));
       
-      
+      $this->tplogger = new TodoPagoLogger();
+
     }//End __construct
 
     function init_form_fields(){
@@ -117,7 +126,7 @@ function woocommerce_todopago_init(){
             'type'=> 'text',
             'description' => 'Dias maximos para la entrega'),
 
-        'titulo_testing' => array( 'title' => 'Ambiente de Testing', 'type' => 'title', 'description' => 'Datos correspondientes al ambiente de testing', 'id' => 'testing_options' ),
+        'titulo_testing' => array( 'title' => 'Ambiente de Developers', 'type' => 'title', 'description' => 'Datos correspondientes al ambiente de developers', 'id' => 'testing_options' ),
 
         'http_header_test' => array(
             'title' => 'HTTP Header',
@@ -192,178 +201,209 @@ function woocommerce_todopago_init(){
 
     //Se ejecuta luego de Finalizar compra -> Realizar el pago
     function first_step_todopago($order_id){
-
+      global $wpdb;
       if(isset($_GET["second_step"])){
         //Second Step
         $this -> second_step_todopago();
-      
-      } else {
-
+      }else{
         $order = new WC_Order($order_id);
         //var_dump($order);
-
+        //var_dump($order->get_user());
         if($order->payment_method == 'todopago'){
+          global $woocommerce;
+          $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
+          $this->prepare_order($order, $logger);
+          $paramsSAR = $this->get_paydata($order, $logger);
+          $response_sar = $this->call_sar($paramsSAR, $logger);
+          $this->custom_commerce($wpdb, $order, $paramsSAR, $response_sar);
+        }
+      }
 
-          $this -> _logTodoPago($order_id,'first step a '.$this->ambiente);
+    }
 
-          require_once(dirname(__FILE__).'/lib/Sdk.php');
-          
-          $esProductivo = $this -> ambiente == "prod"; 
-          $http_header = $this -> getHttpHeader($esProductivo);
+    //Persiste el RequestKey en la DB
+    private function _persistRequestKey($order_id, $request_key){
+      global $wpdb;
+      $wpdb->delete($wpdb->postmeta, 
+                    array('post_id' => $order_id, 'meta_key' => "request_key"), 
+                    array('%d','%s') 
+      );
+      
+      $wpdb->insert($wpdb->postmeta, 
+                    array('post_id' => $order_id, 'meta_key' => "request_key", 'meta_value' => $request_key), 
+                    array('%d','%s','%s') 
+      );
+    }
 
-          $connector = new Sdk($http_header, $this -> ambiente);
+    private function _obtain_logger($php_version, $woocommerce_version, $plugin_version, $endpoint, $customer_id, $order_id, $is_payment){
+      $this->tplogger->setPhpVersion($php_version);
+      global $woocommerce;
+      $this->tplogger->setCommerceVersion($woocommerce_version);
+      $this->tplogger->setPluginVersion($plugin_version);
+      $this->tplogger->setEndPoint($endpoint);
+      $this->tplogger->setCustomer($customer_id);
+      $this->tplogger->setOrder($order_id);
 
-          $this -> setOrderStatus($order,'estado_inicio');
+      return  $this->tplogger->getLogger(true);
+    }
 
-          $returnURL = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . "{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}" . '&second_step=true';
+    function prepare_order($order, $logger){
+      $logger->info('first step');
+      $this->setOrderStatus($order,'estado_inicio');
+    }
 
-          $optionsSAR_comercio = $this -> getOptionsSARComercio($esProductivo, $returnURL);
-          $optionsSAR_operacion = $this -> getOptionsSAROperacion($esProductivo, $order);
-          $optionsSAR_operacion = array_merge_recursive($optionsSAR_operacion, $this -> getParamsCybersource($order));
+    function get_paydata($order, $logger){
+      $controlFraude = ControlFraudeFactory::get_ControlFraude_extractor('Retail', $order, $order->get_user());
+      $datosCs = $controlFraude->getDataCF();
 
-          $paramsSAR['comercio'] = $optionsSAR_comercio;
-          $paramsSAR['operacion'] = $optionsSAR_operacion;
-          $this -> _logTodoPago($order_id, "params SAR", json_encode($paramsSAR));
+      $returnURL = 'http'.(isset($_SERVER['HTTPS']) ? 's' : '').'://'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
 
-          $rta_SAR = $connector->sendAuthorizeRequest($optionsSAR_comercio, $optionsSAR_operacion);
-          $this -> _logTodoPago($order_id, "responseSAR", json_encode($rta_SAR));
+      $esProductivo = $this->ambiente == "prod";
+      $optionsSAR_comercio = $this->getOptionsSARComercio($esProductivo, $returnURL);
 
-          $requestKey = $rta_SAR["RequestKey"];
-          $publicRequestKey = $rta_SAR['PublicRequestKey'];
-          $URL_Request = $rta_SAR["URL_Request"];
-          $StatusCode = $rta_SAR["StatusCode"];
+      $optionsSAR_operacion = $this->getOptionsSAROperacion($esProductivo, $order);
+      $optionsSAR_operacion = array_merge_recursive($optionsSAR_operacion, $datosCs);
 
-          global $wpdb;
-          $wpdb->delete($wpdb->postmeta, 
-                        array('post_id' => $order_id, 'meta_key' => "request_key"), 
-                        array('%d','%s') 
-          );
-          
-          $wpdb->insert($wpdb->postmeta, 
-                        array('post_id' => $order_id, 'meta_key' => "request_key", 'meta_value' => $requestKey), 
-                        array('%d','%s','%s') 
-          );
+      $paramsSAR['comercio'] = $optionsSAR_comercio;
+      $paramsSAR['operacion'] = $optionsSAR_operacion;
+      
+      $logger->info('params SAR '.json_encode($paramsSAR));
 
-          $fechaActual = new DateTime();
-          $wpdb->insert(
-            $wpdb->prefix . 'todopago_transaccion', 
-            array('id_orden'=>$order_id,
-              'params_SAR'=>json_encode($paramsSAR),
-              'response_SAR'=>json_encode($rta_SAR),
-              'request_key'=>$requestKey,
-              'public_request_key'=>$publicRequestKey
-            ),
-            array('%d','%s','%s','%s') 
-          );
+      return $paramsSAR;
+    }
 
-          if($StatusCode == -1){
-            echo '<p> Gracias por su órden, click en el botón de abajo para pagar con TodoPago </p>';
-            echo $this -> generate_form($order, $URL_Request);
-          }else{
-            $this -> _printErrorMsg();
-          }
+    function call_sar($paramsSAR, $logger){
+      $esProductivo = $this->ambiente == "prod";
+      $http_header = $this->getHttpHeader($esProductivo);
+      $connector = new Sdk($http_header, $this->ambiente);
+      $response_sar = $connector->sendAuthorizeRequest($paramsSAR['comercio'], $paramsSAR['operacion']);
+      $logger->info('response SAR '.json_encode($response_sar));
 
-        }//End $order->payment_method == 'todopago'  
+      if($response_sar["StatusCode"] == 702 && !empty($http_header) && !empty($paramsSAR['comercio']['Merchant']) && !empty($paramsSAR['comercio']['Security'])){
+        $response_sar = $connector->sendAuthorizeRequest($paramsSAR['comercio'], $paramsSAR['operacion']);
+        $logger->info('reintento');
+        $logger->info('response SAR '.json_encode($response_sar));
+      }
 
-      }//End isset($_GET["second_step"])
+      return $response_sar;
+    }
 
+    function custom_commerce($wpdb, $order, $paramsSAR, $response_sar){
+      $this->_persistRequestKey($order->id, $response_sar["RequestKey"]);
+
+      $wpdb->insert(
+        $wpdb->prefix.'todopago_transaccion', 
+        array('id_orden'=>$order->id,
+          'params_SAR'=>json_encode($paramsSAR),
+          'first_step'=>date("Y-m-d H:i:s"),
+          'response_SAR'=>json_encode($response_sar),
+          'request_key'=>$response_sar["RequestKey"],
+          'public_request_key'=>$response_sar['PublicRequestKey']
+        ),
+        array('%d','%s','%s','%s','%s') 
+      );
+
+      if($response_sar["StatusCode"] == -1){
+        echo '<p> Gracias por su órden, click en el botón de abajo para pagar con TodoPago </p>';
+        echo $this->generate_form($order, $response_sar["URL_Request"]);
+      }else{
+        $this->_printErrorMsg();
+      }
     }
 
     //Se ejecuta luego de pagar con el formulario
     function second_step_todopago(){
       
       if(isset($_GET['order'])){
-
         $order_id = intval($_GET['order']);
         $order = new WC_Order($order_id);
-        //var_dump($order);
 
         if($order->payment_method == 'todopago'){
+          global $woocommerce;
+          $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
+          $data_GAA = $this->call_GAA($order_id, $logger);
+          $this->take_action($order, $data_GAA, $logger);
+        }
+      }
 
-          $this -> _logTodoPago($order_id,'second step');
+    }
 
-          global $wpdb;
-          $row = $wpdb -> get_row(
-            "SELECT meta_value FROM " . $wpdb -> postmeta . " WHERE meta_key = 'request_key' AND post_id = $order_id"
-          );
-          $esProductivo = $this -> ambiente == "prod"; 
-          
-          $optionsQuery = array (     
-            'Security'   => $esProductivo ? $this -> security_prod : $this -> security_test,      
-            'Merchant'   => strval($esProductivo ? $this -> merchant_id_prod : $this -> merchant_id_test),     
-            'RequestKey' => $row -> meta_value,     
-            'AnswerKey'  => $_GET['Answer']
-          );
-          $this -> _logTodoPago($order_id,'params GAA', json_encode($optionsQuery));
+    function call_GAA($order_id, $logger){
+      $logger->info('second step');
+      global $wpdb;
+      $row = $wpdb -> get_row(
+        "SELECT meta_value FROM ".$wpdb->postmeta." WHERE meta_key = 'request_key' AND post_id = ".$order_id
+      );
+      $esProductivo = $this->ambiente == "prod"; 
+      
+      $params_GAA = array (     
+        'Security'   => $esProductivo ? $this -> security_prod : $this -> security_test,      
+        'Merchant'   => strval($esProductivo ? $this -> merchant_id_prod : $this -> merchant_id_test),     
+        'RequestKey' => $row -> meta_value,     
+        'AnswerKey'  => $_GET['Answer']
+      );
+      $logger->info('params GAA '.json_encode($params_GAA));
 
-          $esProductivo = $this -> ambiente == "prod"; 
-          $http_header = $this -> getHttpHeader($esProductivo);
+      $esProductivo = $this->ambiente == "prod"; 
+      $http_header = $this->getHttpHeader($esProductivo);
 
-          require_once(dirname(__FILE__).'/lib/Sdk.php');
-          $connector = new Sdk($http_header, $this -> ambiente);
+      $connector = new Sdk($http_header, $this -> ambiente);
 
-          $rta_GAA = $connector->getAuthorizeAnswer($optionsQuery);
-          $this -> _logTodoPago($order_id,'response GAA',json_encode($rta_GAA));
+      $response_GAA = $connector->getAuthorizeAnswer($params_GAA);
+      $logger->info('response GAA '.json_encode($response_GAA));
 
-          // Log todopago_transaccion
-          $wpdb->update( 
-            $wpdb->prefix.'todopago_transaccion',
-            array(
-              'params_GAA' => json_encode($optionsQuery), // string
-              'response_GAA' => json_encode($rta_GAA), // string
-              'answer_key' => $_GET['Answer'] //string
-            ),
-            array('id_orden' => $order_id), // int
-            array(
-              '%s',
-              '%s',
-              '%s'
-            ),
-            array('%d')
-          );
+      $data_GAA['params_GAA'] = $params_GAA;
+      $data_GAA['response_GAA'] = $response_GAA;
 
-          if ($rta_GAA['StatusCode']== -1){
-            $this -> setOrderStatus($order,'estado_aprobacion');
-            $this -> _logTodoPago($order_id, 'estado de orden', $order -> post_status);
+      return $data_GAA;    
+    }
 
-            if($order -> post_status == "wc-completed"){
-              //Reducir stock
-              $order->reduce_order_stock();
+    function take_action($order, $data_GAA, $logger){
+      global $wpdb;
 
-              //Vaciar carrito
-              global $woocommerce;
-              $woocommerce->cart->empty_cart();
-            }
+      $wpdb->update( 
+      $wpdb->prefix.'todopago_transaccion',
+        array(
+          'second_step'=>date("Y-m-d H:i:s"), // string
+          'params_GAA'=>json_encode($data_GAA['params_GAA']), // string
+          'response_GAA'=>json_encode($data_GAA['response_GAA']), // string
+          'answer_key'=>$_GET['Answer'] //string
+        ),
+        array('id_orden'=>$order->id), // int
+        array(
+          '%s',
+          '%s',
+          '%s',
+          '%s'
+        ),
+        array('%d')
+      );
 
-            echo "<h2>Operación " . $order_id . " exitosa</h2>";
-            echo "<script>
-                    jQuery('.entry-title').html('Compra finalizada');
-                  </script>";
-          }else{
-            $this -> setOrderStatus($order,'estado_rechazo');
-            $this -> _printErrorMsg();
-          }
+      if ($data_GAA['response_GAA']['StatusCode']== -1){
+        $this -> setOrderStatus($order,'estado_aprobacion');
+        $logger->info('estado de orden '.$order->post_status);
 
-        }//End $order->payment_method == 'todopago'
+        if($order -> post_status == "wc-completed"){
+          //Reducir stock
+          $order->reduce_order_stock();
+          //Vaciar carrito
+          global $woocommerce;
+          $woocommerce->cart->empty_cart();
+        }
 
-      }//End isset($_GET['order'])
+        echo "<h2>Operación " . $order->id . " exitosa</h2>";
+        echo "<script>
+                jQuery('.entry-title').html('Compra finalizada');
+              </script>";
+      }else{
+        $this -> setOrderStatus($order,'estado_rechazo');
+        $this -> _printErrorMsg();
+      }
 
     }
 
     function _printErrorMsg(){
       echo '<div class="woocommerce-error">Lo sentimos, ha ocurrido un error. <a href="' . home_url() . '" class="wc-backward">Volver a la página de inicio</a></div>';
-    }
-
-    /**
-     * Add a log entry
-     */
-    function _logTodoPago($order_id, $action, $params = false) {
-      $logMessage = "todopago - orden ".$order_id." : ".$action;
-      $logMessage .= $params ? " - parametros: ".$params : '';
-      if (!isset($this->log)) {
-          $this->log = new WC_Logger();
-      }
-      $this->log->add('todopago_payment', $logMessage);
     }
 
     private function setOrderStatus($order, $statusName){
@@ -405,152 +445,13 @@ function woocommerce_todopago_init(){
         'MERCHANT'    => strval($esProductivo ? $this -> merchant_id_prod : $this -> merchant_id_test),
         'OPERATIONID' => strval($order -> id),
         'CURRENCYCODE'=> '032', //Por el momento es el único tipo de moneda aceptada
-        'AMOUNT'      => $order -> order_total,
-        'EMAILCLIENTE'=> $order -> billing_email,
       ); 
-    }
-
-    private function cleanDescription($descripcion){
-      $result = htmlspecialchars_decode($descripcion);
-
-      $re = "/\\[(.*?)\\]|<(.*?)\\>/i"; 
-      $subst = " ";
-      $result = preg_replace($re, $subst, $result);
-
-      $replace = array("!","'","\'","\"","  ","$","#","\\","\n","\r",'\n','\r','\t',"\t","\n\r",'\n\r','&nbsp;','&ntilde;',".,",",.");        
-      $result = str_replace($replace, '', $result);
-
-      $susts = array('Á','á','É','é','Í','í','Ó','ó','Ú','ú','Ü','ü','Ṅ','ñ');
-      $cods = array('\u00c1','\u00e1','\u00c9','\u00e9','\u00cd','\u00ed','\u00d3','\u00f3','\u00da','\u00fa','\u00dc','\u00fc','\u00d1','\u00f1');
-      $result = str_replace($cods, $susts, $result);
-      return substr(trim($result),0,50);
-    }
-
-    private function getParamsCybersource($order){
-      $cs['CSBTCITY'] = $order -> billing_city;     
-      $cs['CSBTCOUNTRY'] = $order -> billing_country;        
-      $cs['CSBTCUSTOMERID'] = $order -> customer_user;
-      $cs['CSBTIPADDRESS'] = $order -> customer_ip_address;      
-      $cs['CSBTEMAIL'] = $order -> billing_email;
-      $cs['CSBTFIRSTNAME'] = $order -> billing_first_name;
-      $cs['CSBTLASTNAME'] = $order -> billing_last_name;
-      $cs['CSBTPHONENUMBER'] = $this->_phoneSanitize(strval($order -> billing_phone));
-      $cs['CSBTPOSTALCODE'] = $order -> billing_postcode;
-      $cs['CSBTSTATE'] = $this -> getStateCode($order -> billing_state); //Provincia de la dirección de facturación. MANDATORIO. Ver tabla anexa de provincias.      
-      $cs['CSBTSTREET1'] = $order -> billing_address_1;
-      //$cs['CSBTSTREET2'] = $order -> billing_address_2;
-      $cs['CSPTCURRENCY'] = 'ARS'; //Moneda Fija        
-      $cs['CSPTGRANDTOTALAMOUNT'] = number_format($order -> order_total,2,".","");
-      //$cs['CSMDD6'] = $this -> canal_ingreso;   // Canal de venta. NO MANDATORIO. (Valores posibles: Web, Mobile, Telefonica)       
-      $cs['CSMDD7'] = '';   // Fecha registro comprador(num Dias). NO MANDATORIO.     
-      $cs['CSMDD8'] = 'S';  //Usuario Guest? (Y/N). En caso de ser Y, el campo CSMDD9 no deberá enviarse. NO MANDATORIO.        
-      $cs['CSMDD9'] = '';   //Customer password Hash: criptograma asociado al password del comprador final. NO MANDATORIO.        
-      $cs['CSMDD10'] = '';  //Histórica de compras del comprador (Num transacciones). NO MANDATORIO.        
-      $cs['CSMDD11'] = '';  //Customer Cell Phone. NO MANDATORIO.
-      $cs['CSMDD12'] = $this -> deadline; //Shipping DeadLine (Num Dias). NO MANDATORIO.
-
-      //if($this -> tipo_segmento == 'retail'){
-        $cs['CSSTCITY'] = $order->shipping_city;
-        $cs['CSSTCOUNTRY'] = $order->shipping_country; 
-        $cs['CSSTEMAIL'] = $order->billing_email;
-        $cs['CSSTFIRSTNAME'] = $order->shipping_first_name;
-        $cs['CSSTLASTNAME'] = $order->shipping_last_name;
-        $cs['CSSTPHONENUMBER'] = $this->_phoneSanitize(strval($order->shipping_phone));
-        $cs['CSSTPOSTALCODE'] = $order->shipping_postcode;
-        $cs['CSSTSTATE'] = $this->getStateCode($order->shipping_state); 
-        $cs['CSSTSTREET1'] = $order->billing_address_1;
-      //}
-
-      $csCSITPRODUCTCODE = array();
-      $csCSITPRODUCTDESCRIPTION = array();
-      $csCSITPRODUCTNAME = array();
-      $csCSITPRODUCTSKU = array();
-      $csCSITTOTALAMOUNT = array();
-      $csCSITQUANTITY = array();
-      $csCSITUNITPRICE = array();
-
-      $replace = array("\n","\r",'\n','\r','&nbsp;');
-      global $woocommerce;
-      foreach ($woocommerce->cart->cart_contents as $cart_key => $cart_item_array) {
-        $csCSITPRODUCTCODE[] = 'default';
-        $descripcion = ($cart_item_array['data']->post->post_content == null) ? '' : $this -> cleanDescription($cart_item_array['data'] -> post -> post_content);
-        $csCSITPRODUCTDESCRIPTION[] = $descripcion;         
-        $csCSITPRODUCTNAME[] = str_replace('#', '', $cart_item_array['data']->post->post_title);
-        $csCSITPRODUCTSKU[] = str_replace('#', '', $cart_item_array['product_id']);
-        $csCSITTOTALAMOUNT[] = number_format($cart_item_array['line_total'],2,".","");
-        $csCSITQUANTITY[] = $cart_item_array['quantity'];
-        $csCSITUNITPRICE[] = number_format($cart_item_array['data']->price,2,".","");
-      }
-
-      $cs['CSITPRODUCTCODE'] = join($csCSITPRODUCTCODE, "#");
-      $cs['CSITPRODUCTDESCRIPTION'] = join($csCSITPRODUCTDESCRIPTION, "#");
-      $cs['CSITPRODUCTNAME'] = join($csCSITPRODUCTNAME, "#");
-      $cs['CSITPRODUCTSKU'] = join($csCSITPRODUCTSKU, "#");
-      $cs['CSITTOTALAMOUNT'] = join($csCSITTOTALAMOUNT, "#");
-      $cs['CSITQUANTITY'] = join($csCSITQUANTITY, "#");
-      $cs['CSITUNITPRICE'] = join($csCSITUNITPRICE, "#");
-
-      return $cs;     
-    }
-
-    private function _phoneSanitize($number){
-      $number = str_replace(array(" ","(",")","-","+"),"",$number);
-      
-      if(substr($number,0,2)=="54") return $number;
-      
-      if(substr($number,0,2)=="15"){
-       $number = substr($number,2,strlen($number));
-      }
-      if(strlen($number)==8) return "5411".$number;
-      
-      if(substr($number,0,1)=="0") return "54".substr($number,1,strlen($number));
-      return $number;
-    }
-
-    private function getStateCode($stateName){
-      $array = array(
-        "caba" => "C",
-        "capital" => "C",
-        "ciudad autonoma de buenos aires" => "C",
-        "buenos aires" => "B",
-        "bs as" => "B",
-        "catamarca" => "K",
-        "chaco" => "H",
-        "chubut" => "U",
-        "cordoba" => "X",
-        "corrientes" => "W",
-        "entre rios" => "R",
-        "formosa" => "P",
-        "jujuy" => "Y",
-        "la pampa" => "L",
-        "la rioja" => "F",
-        "mendoza" => "M",
-        "misiones" => "N",
-        "neuquen" => "Q",
-        "rio negro" => "R",
-        "salta" => "A",
-        "san juan" => "J",
-        "san luis" => "D",
-        "santa cruz" => "Z",
-        "santa fe" => "S",
-        "santiago del estero" => "G",
-        "tierra del fuego" => "V",
-        "tucuman" => "T"
-      );
-
-      $name = strtolower($stateName);
-      
-      $no_permitidas = array("á","é","í","ó","ú");
-      $permitidas = array("a","e","i","o","u");
-      $name = str_replace($no_permitidas, $permitidas ,$name);
-
-      return isset($array[$name]) ? $array[$name] : 'C';
     }
 
     private function generate_form($order, $URL_Request){
       return '<form action="' . $URL_Request . '" method="post" id="todopago_payment_form">' . 
              '<input type="submit" class="button-alt" id="submit_todopago_payment_form" value="' . 'Pagar con TodoPago' . '" /> 
-              <a class="button cancel" href="' . $order -> get_cancel_order_url() . '">' . ' Cancelar orden ' . '</a>
+              <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . ' Cancelar orden ' . '</a>
               </form>';
     }
 
@@ -605,10 +506,10 @@ function todopago_install(){
   $sql = "CREATE TABLE IF NOT  EXISTS $table_name (
     id INT NOT NULL AUTO_INCREMENT,
     id_orden INT NULL,
-    first_step TIMESTAMP NULL,
+    first_step TEXT NULL,
     params_SAR TEXT NULL,
     response_SAR TEXT NULL,
-    second_step TIMESTAMP NULL,
+    second_step TEXT NULL,
     params_GAA TEXT NULL,
     response_GAA TEXT NULL,
     request_key TEXT NULL,
@@ -624,7 +525,6 @@ function todopago_install(){
   add_option('todopago_db_version', $todopago_db_version);
 
 }
-
 
 function todopago_update_db_check() {
   global $todopago_db_version;
