@@ -25,6 +25,7 @@ La versión de este plug in esta testeada en PHP 5.4-5.3 y WordPress 3.7.5 con W
 
 Observaci&oacute;n:
 Descomentar: <em>extension=php_soap.dll</em> del php.ini, ya que para la conexión al gateway se utiliza la clase <em>SoapClient</em> del API de PHP.
+Descomentar: <em>extension=php_openssl.dll</em> del php.ini 
 <br />
 [<sub>Volver a inicio</sub>](#inicio)
 
