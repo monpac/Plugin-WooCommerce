@@ -2,11 +2,11 @@
 /*
 Plugin Name: TodoPago para WooCommerce
 Description: TodoPago para Woocommerce.
-Version: 1.2.1
+Version: 1.2.2
 Author: Todo Pago
 */
 
-define('PLUGIN_VERSION','1.2.1');
+define('PLUGIN_VERSION','1.2.2');
 
 use TodoPago\Sdk as Sdk;
 
@@ -223,16 +223,7 @@ function woocommerce_todopago_init(){
 
     //Persiste el RequestKey en la DB
     private function _persistRequestKey($order_id, $request_key){
-      global $wpdb;
-      $wpdb->delete($wpdb->postmeta, 
-                    array('post_id' => $order_id, 'meta_key' => "request_key"), 
-                    array('%d','%s') 
-      );
-      
-      $wpdb->insert($wpdb->postmeta, 
-                    array('post_id' => $order_id, 'meta_key' => "request_key", 'meta_value' => $request_key), 
-                    array('%d','%s','%s') 
-      );
+     update_post_meta( $order_id, 'request_key', $request_key);
     }
 
     private function _obtain_logger($php_version, $woocommerce_version, $plugin_version, $endpoint, $customer_id, $order_id, $is_payment){
@@ -330,10 +321,7 @@ function woocommerce_todopago_init(){
 
     function call_GAA($order_id, $logger){
       $logger->info('second step');
-      global $wpdb;
-      $row = $wpdb -> get_row(
-        "SELECT meta_value FROM ".$wpdb->postmeta." WHERE meta_key = 'request_key' AND post_id = ".$order_id
-      );
+      $row = get_postmeta(order_id, 'request_key', true);
       $esProductivo = $this->ambiente == "prod"; 
       
       $params_GAA = array (     
