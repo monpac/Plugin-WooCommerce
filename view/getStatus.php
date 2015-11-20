@@ -7,14 +7,14 @@ require_once(dirname(__FILE__).'/../lib/Sdk.php');
 
 global $wpdb;
 $row = $wpdb -> get_row(
-"SELECT option_value FROM wp_options WHERE option_name = 'woocommerce_todopago_settings'"
+    "SELECT option_value FROM wp_options WHERE option_name = 'woocommerce_todopago_settings'"
 );
 $arrayOptions = unserialize($row -> option_value);
 
 $esProductivo = $arrayOptions['ambiente'] == "prod";
 
 $http_header = $esProductivo ? $arrayOptions['http_header_prod'] : $arrayOptions['http_header_test'];
-$http_header = json_decode(html_entity_decode($http_header,TRUE));
+$http_header = json_decode(html_entity_decode($http_header, true));
 
 $connector = new Sdk($http_header, $arrayOptions['ambiente']);
 

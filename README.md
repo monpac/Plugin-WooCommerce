@@ -51,13 +51,13 @@ El Plug-in nos mostrará las siguientes secciones:<br />
 
 <a name="configuraciongeneral"></a>
 <sub><em>Configuración General</em></sub><br />
-![imagen de configuracion](https://github.com/TodoPago/imagenes/blob/master/woocommerce/2-%20configuracion%20general.png)
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/2-%20configuracion%20general.png)
 - La opción Habilitar/Deshabilitar permite la activación o no del medio de pago Todo Pago en el comercio.
 - La opción ambiente define si se toman los datos de Ambiente de Developers o de Ambiente de Producción.
 
 <a name="ambientetesting"></a>
 <sub><em>Ambiente de Developers</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20testing.png)
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.png)
 
 <a name="ambienteproduccion"></a>
 <sub><em>Ambiente de Producción</em></sub><br />

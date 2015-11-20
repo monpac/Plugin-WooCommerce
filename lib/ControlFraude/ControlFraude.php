@@ -25,7 +25,7 @@ abstract class ControlFraude {
 		$payDataOperacion['CSBTCITY'] = $this->getField($this->order->billing_city);
 		$payDataOperacion['CSBTCOUNTRY'] = $this->order->billing_country;
 		$payDataOperacion['CSBTCUSTOMERID'] = $this->order->customer_user;        
-		$payDataOperacion['CSBTIPADDRESS'] = $this->order->customer_ip_address;
+		$payDataOperacion['CSBTIPADDRESS'] = ($this->order->customer_ip_address == '::1') ? '127.0.0.1' : $this->order->customer_ip_address;
 		$payDataOperacion['CSBTEMAIL'] = $this->order->billing_email;
 		$payDataOperacion['CSBTFIRSTNAME'] = $this->order->billing_first_name;
 		$payDataOperacion['CSBTLASTNAME'] = $this->order->billing_last_name;      

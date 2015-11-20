@@ -1,12 +1,12 @@
 <?php
 /*
 	Plugin Name: TodoPago para WooCommerce
-Description: TodoPago para Woocommerce.
-Version: 1.2.2
-Author: Todo Pago
+    Description: TodoPago para Woocommerce.
+    Version: 1.2.4
+    Author: Todo Pago
 */
 
-define('PLUGIN_VERSION','1.2.3');
+define('PLUGIN_VERSION','1.2.4');
 
 use TodoPago\Sdk as Sdk;
 
@@ -68,7 +68,7 @@ function woocommerce_todopago_init(){
             }
 
             //Llamado al first step
-            add_action('woocommerce_receipt_' . $this->id, array($this, 'first_step_todopago'));
+            add_action('after_woocommerce_pay', array($this, 'first_step_todopago'));
 
             //Llamado al second step
             add_action('woocommerce_thankyou', array($this, 'second_step_todopago'));
@@ -131,8 +131,7 @@ function woocommerce_todopago_init(){
                 'http_header_test' => array(
                     'title' => 'HTTP Header',
                     'type' => 'text',
-                    'description' => 'Header en formato JSON. Ejemplo: <br>
-                              {"Authorization":"PRISMA 912EC803B2CE49E4A541068D12345678"}'),
+                    'description' => 'Authorization para el hearder. Ejemplo: <b>PRISMA 912EC803B2CE49E4A541068D12345678</b>'),
                 'security_test' => array(
                     'title' => 'Security',
                     'type' => 'text',
@@ -140,15 +139,14 @@ function woocommerce_todopago_init(){
                 'merchant_id_test' => array(
                     'title' => 'Merchant ID',
                     'type' => 'text',
-                    'description' => 'Nombre de comercio provisto por Todo Pago'),
+                    'description' => 'N&uacute;mero de comercio provisto por Todo Pago'),
 
                 'titulo_produccion' => array( 'title' => 'Ambiente de Producción', 'type' => 'title', 'description' => 'Datos correspondientes al ambiente de producción', 'id' => 'produccion_options' ),
 
                 'http_header_prod' => array(
                     'title' => 'HTTP Header',
                     'type' => 'text',
-                    'description' => 'Header en formato JSON. Ejemplo: <br>
-                              {"Authorization":"PRISMA 912EC803B2CE49E4A541068D12345678"}'),
+                    'description' => 'Authorization para el hearder. Ejemplo: <b>PRISMA 912EC803B2CE49E4A541068D12345678</b>'),
                 'security_prod' => array(
                     'title' => 'Security',
                     'type' => 'text',
@@ -156,7 +154,7 @@ function woocommerce_todopago_init(){
                 'merchant_id_prod' => array(
                     'title' => 'Merchant ID',
                     'type' => 'text',
-                    'description' => 'Nombre de comercio provisto por Todo Pago'),
+                    'description' => 'N&uacute;mero de comercio provisto por Todo Pago'),
 
                 'titulo_estados_pedidos' => array( 'title' => 'Estados del Pedido', 'type' => 'title', 'description' => 'Datos correspondientes al estado de los pedidos', 'id' => 'estados_pedido_options' ),
 
@@ -206,6 +204,8 @@ function woocommerce_todopago_init(){
                 //Second Step
                 $this -> second_step_todopago();
             }else{
+                global $woocommerce;
+                $order_id = $woocommerce->session->__get('order_awaiting_payment');
                 $order = new WC_Order($order_id);
                 //var_dump($order);
                 //var_dump($order->get_user());
@@ -416,7 +416,8 @@ function woocommerce_todopago_init(){
 
         private function getHttpHeader($esProductivo){
             $http_header = $esProductivo ? $this -> http_header_prod : $this -> http_header_test;
-            return json_decode(html_entity_decode($http_header,TRUE));
+            $header_decoded = json_decode(html_entity_decode($http_header,TRUE));
+            return (!empty($header_decoded)) ? $header_decoded : array("authorization" => $http_header);
         }
 
         private function getOptionsSARComercio($esProductivo, $returnUrl){
