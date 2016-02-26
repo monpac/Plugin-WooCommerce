@@ -10,6 +10,7 @@ Plug in para la integración con gateway de pago <strong>Todo Pago</strong>
  - [Configuración](#configuracion)
 - [Datos adiccionales para prevención de fraude](#cybersource) 
 - [Consulta de transacciones](#constrans)
+- [Devoluciones](#devoluciones)
 - [Tablas de referencia](#tablas)
 
 <a name="consideracionesgenerales"></a>
@@ -57,7 +58,7 @@ El Plug-in nos mostrará las siguientes secciones:<br />
 
 <a name="ambientetesting"></a>
 <sub><em>Ambiente de Developers</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.png)
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.PNG)
 
 <a name="ambienteproduccion"></a>
 <sub><em>Ambiente de Producción</em></sub><br />
@@ -120,6 +121,13 @@ Las consideración para el caso de empresas del rubro <strong>RETAIL</strong> so
 <a name="constrans"></a>
 ## Consulta de Transacciones
 Se puede consultar <strong>on line</strong> las características de la transacci&oacute;n en el sistema de Todo Pago al hacer click en el número de orden en la parte de Status de las Operaciones.<br />
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/6-%20status%20de%20las%20operaciones.png)
+[<sub>Volver a inicio</sub>](#inicio)
+
+<a name="devoluciones"></a>
+## Devoluciones
+Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual de WooCommerce. Para ello dirigirse en el menú a WooCommerce->Pedidos, "Ver" la orden deseada (Esta debe haber sido realizada con TodoPago) y encontrará una sección con el título **Pedido Productos**, dentro de esta hay un botón *Reembolso* al hacer click ahí nos solicitará el monto a reembolsar y nos dará la opción de *Reembolsar con TodoPago*.<br />
+![Devolución](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/8-%20devoluciones.PNG)<br />
 [<sub>Volver a inicio</sub>](#inicio)
 
 <a name="tablas"></a>

@@ -54,13 +54,13 @@
     function verstatus (order){
       var merchant = <?php echo $merchant ?>;
       var url_get_status = '<?php echo $urlGetStatus ?>';
-      jQuery.get(url_get_status,{order_id:order,merchant:merchant},llegadaDatos); 
+      jQuery.get(url_get_status, {order_id:order,merchant:merchant}).done(llegadaDatos);
       return false;                                           
     }
 
     function llegadaDatos(datos){
-      alert(datos);
-    }  
+        alert(datos);
+    }
 
   </script>
   <?php

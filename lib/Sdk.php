@@ -1,13 +1,16 @@
 <?php 
 namespace TodoPago;
 
-define('TODOPAGO_VERSION','1.0');
-define('TODOPAGO_ENDPOINT_TEST','https://developers.todopago.com.ar/services/t/1.1/');
-define('TODOPAGO_ENDPOINT_PROD','https://apis.todopago.com.ar/services/t/1.1/');
+require_once(dirname(__FILE__)."/Client.php");
 
-define('TODOPAGO_WSDL_AUTHORIZE',dirname(__FILE__).'/Authorize.wsdl');
+define('TODOPAGO_VERSION','1.3.0');
+define('TODOPAGO_ENDPOINT_TEST','https://developers.todopago.com.ar/');
+define('TODOPAGO_ENDPOINT_PROD','https://apis.todopago.com.ar/');
+define('TODOPAGO_ENDPOINT_TENATN', 't/1.1/');
+define('TODOPAGO_ENDPOINT_SOAP_APPEND', 'services/');
+
+define('TODOPAGO_WSDL_AUTHORIZE', dirname(__FILE__).'/Authorize.wsdl');
 define('TODOPAGO_WSDL_OPERATIONS',dirname(__FILE__).'/Operations.wsdl');
-define('TODOPAGO_WSDL_PAYMENTMETHODS',dirname(__FILE__).'/PaymentMethods.wsdl');
 
 class Sdk
 {
@@ -17,10 +20,13 @@ class Sdk
 	private $pass = NULL;
 	private $connection_timeout = NULL;
 	private $local_cert = NULL;
-	private $end_point = TODOPAGO_ENDPOINT_TEST;
+	private $end_point = NULL;
 	
 	public function __construct($header_http_array, $mode = "test"){
-		$this->wsdl = array("Authorize" => TODOPAGO_WSDL_AUTHORIZE, "Operations" => TODOPAGO_WSDL_OPERATIONS, "PaymentMethods" => TODOPAGO_WSDL_PAYMENTMETHODS);
+		$this->wsdl = array(
+			"Authorize"  => TODOPAGO_WSDL_AUTHORIZE,
+			"Operations" => TODOPAGO_WSDL_OPERATIONS,
+		);
 		
 		if($mode == "test") {
 			$this->end_point = TODOPAGO_ENDPOINT_TEST;
@@ -35,7 +41,7 @@ class Sdk
 	private function getHeaderHttp($header_http_array){
 		$header = "";
 		foreach($header_http_array as $key=>$value){
-			$header .= "$key : $value\r\n";
+			$header .= "$key: $value\r\n";
 		}
 		
 		return $header;
@@ -82,7 +88,7 @@ class Sdk
 	public function sendAuthorizeRequest($options_comercio, $options_operacion){
 		// parseo de los valores enviados por el e-commerce/custompage
 		$authorizeRequest = $this->parseToAuthorizeRequest($options_comercio, $options_operacion);
-		
+
 		$authorizeRequestResponse = $this->getAuthorizeRequestResponse($authorizeRequest);
 
 		//devuelve el formato de array el resultado de de la operación SendAuthorizeRequest
@@ -99,16 +105,35 @@ class Sdk
 
 	private function getClientSoap($typo){
 		$local_wsdl = $this->wsdl["$typo"];
-		$local_end_point = $this->end_point."$typo";
-		$context = array('http' =>
-			array(
+		$local_end_point = $this->end_point.TODOPAGO_ENDPOINT_SOAP_APPEND.TODOPAGO_ENDPOINT_TENATN."$typo";
+		$context = array(
+			'http' => array(
 				'header'  => $this->header_http
-							
+			),
+		    'ssl' => array(
+				'verify_peer' => false,
+				'verify_peer_name' => false,
+				'allow_self_signed' => true
 			)
 		);
-         
+
+		// Fix bug #49853 - https://bugs.php.net/bug.php?id=49853
+		if(version_compare(PHP_VERSION, '5.3.8') == -1) {
+			$clientSoap = new Client($local_wsdl, array(
+					'local_cert'=>($this->local_cert),
+					'connection_timeout' => $this->connection_timeout,
+					'location' => $local_end_point,
+					'encoding' => 'UTF-8',
+					'proxy_host' => $this->host,
+					'proxy_port' => $this->port,
+					'proxy_login' => $this->user,
+					'proxy_password' => $this->pass
+				));
+			$clientSoap->setCustomHeaders($context);
+			return $clientSoap;
+		}
+
 		$clientSoap = new \SoapClient($local_wsdl, array(
-				
 				'stream_context' => stream_context_create($context),
 				'local_cert'=>($this->local_cert), 
 				'connection_timeout' => $this->connection_timeout,
@@ -138,34 +163,38 @@ class Sdk
 	}
 	
 	public static function sanitizeValue($string){
-    	$string = htmlspecialchars_decode($string);
-
-    	$re = "/\\[(.*?)\\]|<(.*?)\\>/i";
-    	$subst = "";
-    	$string = preg_replace($re, $subst, $string);
-
-    	$replace = array("!","'","\'","\"","  ","$","\\","\n","\r",'\n','\r','\t',"\t","\n\r",'\n\r','&nbsp;','&ntilde;',".,",",.");
-    	$string = str_replace($replace, '', $string);
-
-    	$cods = array('\u00c1','\u00e1','\u00c9','\u00e9','\u00cd','\u00ed','\u00d3','\u00f3','\u00da','\u00fa','\u00dc','\u00fc','\u00d1','\u00f1');
-    	$susts = array('Á','á','É','é','Í','í','Ó','ó','Ú','ú','Ü','ü','Ṅ','ñ');
-    	$string = str_replace($cods, $susts, $string);
-
-    	$no_permitidas= array ("á","é","í","ó","ú","Á","É","Í","Ó","Ú","ñ","À","Ã","Ì","Ò","Ù","Ã™","Ã ","Ã¨","Ã¬","Ã²","Ã¹","ç","Ç","Ã¢","ê","Ã®","Ã´","Ã»","Ã‚","ÃŠ","ÃŽ","Ã”","Ã›","ü","Ã¶","Ã–","Ã¯","Ã¤","«","Ò","Ã","Ã„","Ã‹");
-	  	$permitidas= array ("a","e","i","o","u","A","E","I","O","U","n","N","A","E","I","O","U","a","e","i","o","u","c","C","a","e","i","o","u","A","E","I","O","U","u","o","O","i","a","e","U","I","A","E");
-	  	$string = str_replace($no_permitidas, $permitidas ,$string);
-            
+		$string = htmlspecialchars_decode($string);
+		$string = strip_tags($string);
+		$re = "/\\[(.*?)\\]|<(.*?)\\>/i";
+		$subst = "";
+		$string = preg_replace($re, $subst, $string);
+		$string = preg_replace('/[\x00-\x1f]/','',$string);
+		$string = preg_replace('/[\xc2-\xdf][\x80-\xbf]/','',$string);
+		$replace = array("\n","\r",'\n','\r','&nbsp;','&','<','>');
+		$string = str_replace($replace, '', $string);
 		return $string;
 	}
 	
 	private function getPayload($optionsAuthorize){
 		$xmlPayload = "<Request>";
+ 		unset($optionsAuthorize['SDK']);
+ 		unset($optionsAuthorize['SDKVERSION']);
+ 		unset($optionsAuthorize['LENGUAGEVERSION']);
+ 		$optionsAuthorize['SDK'] = "PHP";
+ 		$optionsAuthorize['SDKVERSION'] = TODOPAGO_VERSION;
+ 		$optionsAuthorize['LENGUAGEVERSION'] = PHP_VERSION;
+
 		foreach($optionsAuthorize as $key => $value){
-	
+			if(strpos($value,"#") === false) {
+				$value = substr($value, 0, 254);
+			}
 			$xmlPayload .= "<" . $key . ">" . self::sanitizeValue($value) . "</" . $key . ">";
 		}
 		$xmlPayload .= "</Request>";
-		return $xmlPayload;
+
+		//Paso a UTF-8.
+		if(function_exists("mb_convert_encoding")) return mb_convert_encoding($xmlPayload, "UTF-8", "auto");
+        else return utf8_encode($xmlPayload);
 	}
 
 	/*
@@ -200,24 +229,124 @@ class Sdk
 
 		return $authorizeAnswerResponseOptions;
 	}
-	
-	public function getAllPaymentMethods($merchant){
-		$clientSoap = $this->getClientSoap('PaymentMethods');
-		
-		$get_all_data = (object) $merchant;
-		
-		$getAll = $clientSoap->Get($get_all_data);
-		return json_decode(json_encode($getAll), TRUE);
+
+	// DEVOLUCIONES
+	public function voidRequest($optionsVoid){
+		$voidRequestOptions = $this->parseToVoidRequest($optionsVoid);
+
+		$voidRequestResponse = $this->getVoidRequestResponse($voidRequestOptions);
+
+		$voidRequestResponseValues = $this->parseVoidRequestResponseToArray($voidRequestResponse);
+
+		return $voidRequestResponseValues;
 	}
 
-	public function getStatus($arr_datos_status){//TODO: crear una funcion en algun lado que la use.
-		$clientSoap = $this->getClientSoap('Operations');
+	private function parseToVoidRequest($optionsVoid){
 		
-		$obj_datos_to_status = (object) $arr_datos_status;
+		$obj_optionsVoid = (object) $optionsVoid;
 		
-		$get_status = $clientSoap->GetByOperationId($obj_datos_to_status);
+		return $obj_optionsVoid;
+	}
+
+	private function getVoidRequestResponse($voidRequestOptions){
+		$client = $this->getClientSoap('Authorize');
+		$voidRequestOptions = $client->VoidRequest($voidRequestOptions);
+		return $voidRequestOptions;
+	}
+
+	private function parseVoidRequestResponseToArray($voidRequestResponse){
+		$voidRequestResponseValues = json_decode(json_encode($voidRequestResponse), true);
+
+		return $voidRequestResponseValues;
+	}
+
+
+	public function returnRequest($optionsReturn){
+		$returnRequestOptions = $this->parseToReturnRequest($optionsReturn);
+
+		$returnRequestResponse = $this->getReturnRequestResponse($returnRequestOptions);
+
+		$returnRequestResponseValues = $this->parseReturnRequestResponseToArray($returnRequestResponse);
+
+		return $returnRequestResponseValues;
+	}
+
+	private function parseToReturnRequest($optionsReturn){
 		
-		return json_decode(json_encode($get_status), TRUE);
+		$obj_optionsReturn = (object) $optionsReturn;
+		
+		return $obj_optionsReturn;
+	}
+
+	private function getReturnRequestResponse($returnRequestOptions){
+		$client = $this->getClientSoap('Authorize');
+		$returnRequestOptions = $client->ReturnRequest($returnRequestOptions);
+		return $returnRequestOptions;
+	}
+
+	private function parseReturnRequestResponseToArray($returnRequestResponse){
+		$returnRequestResponseValues = json_decode(json_encode($returnRequestResponse), true);
+
+		return $returnRequestResponseValues;
+
+	}
+
+	public function getByRangeDateTime($optionsGetByRangeDateTime){
+		$rangeDateTime = $this->parseToRangeDateTime($optionsGetByRangeDateTime);
+
+		$rangeDateTimeResponse = $this->getByRangeDateTimeResponse($rangeDateTime);
+
+		$rangeDateTimeResponseValues = $this->parseRangeDateTimeResponseToArray($rangeDateTimeResponse);
+
+		return $rangeDateTimeResponseValues;
+	}
+
+	private function parseToRangeDateTime($optionsGetByRangeDateTime){
+
+		$obj_options_rangedatetime = (object) $optionsGetByRangeDateTime;
+
+		return $obj_options_rangedatetime;
+	}
+
+	private function getByRangeDateTimeResponse($rangeDateTime){
+		$client = $this->getClientSoap('Operations');
+		$rangeDateTime = $client->GetByRangeDateTime($rangeDateTime);
+		return $rangeDateTime;
+	}
+
+	private function parseRangeDateTimeResponseToArray($rangeDateTimeResponse){
+		$rangeDateTimeResponseOptions = json_decode(json_encode($rangeDateTimeResponse), true);
+
+		return $rangeDateTimeResponseOptions;
+	}
+
+	//REST
+	public function getStatus($arr_datos_status){
+		$url = $this->end_point.TODOPAGO_ENDPOINT_TENATN.'api/Operations/GetByOperationId/MERCHANT/'. $arr_datos_status["MERCHANT"] . '/OPERATIONID/'. $arr_datos_status["OPERATIONID"];
+		return $this->doRest($url);
 	}
 	
+	public function getAllPaymentMethods($arr_datos_merchant){
+		$url = $this->end_point.TODOPAGO_ENDPOINT_TENATN.'api/PaymentMethods/Get/MERCHANT/'. $arr_datos_merchant["MERCHANT"];
+		return $this->doRest($url);
+	}
+
+	private function doRest($url){
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+		if($this->host != null)
+			curl_setopt($curl, CURLOPT_PROXY, $this->host);
+		if($this->port != null)
+			curl_setopt($curl, CURLOPT_PROXYPORT, $this->port);
+		$result = curl_exec($curl);
+		$http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
+		if($http_status != 200) {
+			$result = "<Colections/>";
+		}
+
+		return json_decode(json_encode(simplexml_load_string($result)), true);
+	}
 }

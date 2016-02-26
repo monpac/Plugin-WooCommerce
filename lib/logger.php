@@ -27,7 +27,7 @@ class TodoPagoLogger {
 						),
 					),
 					"params" => array(
-						"file" => dirname(__FILE__)."./todopago.log",
+						"file" => dirname(__FILE__)."/todopago.log",
 					),
 					"filters" => array(
 						array(
@@ -48,7 +48,7 @@ class TodoPagoLogger {
 						),
 					),
 					"params" => array(
-						"file" => dirname(__FILE__)."./todopago.log",
+						"file" => dirname(__FILE__)."/todopago.log",
 					),
 					"filters" => array(
 						array(

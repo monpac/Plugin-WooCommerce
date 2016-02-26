@@ -2,11 +2,12 @@
 /*
 	Plugin Name: TodoPago para WooCommerce
     Description: TodoPago para Woocommerce.
-    Version: 1.2.4
+    Version: 1.2.5
     Author: Todo Pago
 */
 
-define('PLUGIN_VERSION','1.2.4');
+define('TODOPAGO_PLUGIN_VERSION','1.2.5');
+define('TODOPAGO_DEVOLUCION_OK', 2011);
 
 use TodoPago\Sdk as Sdk;
 
@@ -26,9 +27,13 @@ function woocommerce_todopago_init(){
 
         public function __construct(){
             $this -> id             = 'todopago';
-            $this -> icon           = apply_filters('woocommerce_todopago_icon', plugins_url('images/todopago.jpg',__FILE__));
+            $this -> icon           = apply_filters('woocommerce_todopago_icon', "http://www.todopago.com.ar/sites/todopago.com.ar/files/pluginstarjeta.jpg");
             $this -> medthod_title  = 'Todo Pago';
             $this -> has_fields     = false;
+            $this -> supports = array(
+                'products',
+                'refunds'
+            );
 
             $this -> init_form_fields();
             $this -> init_settings(); //Carga en el array settings los valores de los campos persistidos de la base de datos
@@ -131,7 +136,7 @@ function woocommerce_todopago_init(){
                 'http_header_test' => array(
                     'title' => 'HTTP Header',
                     'type' => 'text',
-                    'description' => 'Authorization para el hearder. Ejemplo: <b>PRISMA 912EC803B2CE49E4A541068D12345678</b>'),
+                    'description' => "Authorization para el hearder. Ejemplo: <b>PRISMA 912EC803B2CE49E4A541068D12345678</b>"),
                 'security_test' => array(
                     'title' => 'Security',
                     'type' => 'text',
@@ -211,7 +216,7 @@ function woocommerce_todopago_init(){
                 //var_dump($order->get_user());
                 if($order->payment_method == 'todopago'){
                     global $woocommerce;
-                    $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
+                    $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, TODOPAGO_PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
                     $this->prepare_order($order, $logger);
                     $paramsSAR = $this->get_paydata($order, $logger);
                     $response_sar = $this->call_sar($paramsSAR, $logger);
@@ -226,11 +231,11 @@ function woocommerce_todopago_init(){
             update_post_meta( $order_id, 'request_key', $request_key);
         }
 
-        private function _obtain_logger($php_version, $woocommerce_version, $plugin_version, $endpoint, $customer_id, $order_id, $is_payment){
+        private function _obtain_logger($php_version, $woocommerce_version, $todopago_plugin_version, $endpoint, $customer_id, $order_id, $is_payment){
             $this->tplogger->setPhpVersion($php_version);
             global $woocommerce;
             $this->tplogger->setCommerceVersion($woocommerce_version);
-            $this->tplogger->setPluginVersion($plugin_version);
+            $this->tplogger->setPluginVersion($todopago_plugin_version);
             $this->tplogger->setEndPoint($endpoint);
             $this->tplogger->setCustomer($customer_id);
             $this->tplogger->setOrder($order_id);
@@ -264,9 +269,12 @@ function woocommerce_todopago_init(){
         }
 
         function call_sar($paramsSAR, $logger){
+            $logger->debug(call_sar);
             $esProductivo = $this->ambiente == "prod";
-            $http_header = $this->getHttpHeader($esProductivo);
+            $http_header = $this->getHttpHeader();
+            $logger->debug("http header: ".json_encode($http_header));
             $connector = new Sdk($http_header, $this->ambiente);
+            $logger->debug("Connector: ".json_encode($connector));
             $response_sar = $connector->sendAuthorizeRequest($paramsSAR['comercio'], $paramsSAR['operacion']);
             $logger->info('response SAR '.json_encode($response_sar));
 
@@ -311,7 +319,7 @@ function woocommerce_todopago_init(){
 
                 if($order->payment_method == 'todopago'){
                     global $woocommerce;
-                    $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
+                    $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, TODOPAGO_PLUGIN_VERSION, $this->ambiente, $order->customer_user, $order_id, true);
                     $data_GAA = $this->call_GAA($order_id, $logger);
                     $this->take_action($order, $data_GAA, $logger);
                 }
@@ -333,7 +341,7 @@ function woocommerce_todopago_init(){
             $logger->info('params GAA '.json_encode($params_GAA));
 
             $esProductivo = $this->ambiente == "prod"; 
-            $http_header = $this->getHttpHeader($esProductivo);
+            $http_header = $this->getHttpHeader();
             $logger->info("HTTP_HEADER: ".json_encode($http_header));
             $connector = new Sdk($http_header, $this -> ambiente);
             
@@ -402,7 +410,7 @@ function woocommerce_todopago_init(){
             );
 
             $arrayOptions = unserialize($row -> option_value);
-            //var_dump($arrayOptions);
+            //var_dump($a rrayOptions);
 
             $estado = substr($arrayOptions[$statusName], 3);
             $order -> update_status($estado, "Cambio a estado: " . $estado);
@@ -414,10 +422,19 @@ function woocommerce_todopago_init(){
             return json_decode(html_entity_decode($wsdl,TRUE),TRUE);
         }
 
-        private function getHttpHeader($esProductivo){
+        private function getHttpHeader(){
+            $esProductivo = $this->ambiente == "prod";
             $http_header = $esProductivo ? $this -> http_header_prod : $this -> http_header_test;
             $header_decoded = json_decode(html_entity_decode($http_header,TRUE));
             return (!empty($header_decoded)) ? $header_decoded : array("authorization" => $http_header);
+        }
+
+        private function getSecurity() {
+            return $this->ambiente == "prod"? $this->security_prod : $this->security_test;
+        }
+
+        private function getMerchant() {
+            return $this->ambiente == "prod"? $this->merchant_id_prod : $this->merchant_id_test;
         }
 
         private function getOptionsSARComercio($esProductivo, $returnUrl){
@@ -443,6 +460,72 @@ function woocommerce_todopago_init(){
                 '<input type="submit" class="button-alt" id="submit_todopago_payment_form" value="' . 'Pagar con TodoPago' . '" /> 
               <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . ' Cancelar orden ' . '</a>
               </form>';
+        }
+
+        public function process_refund( $order_id, $amount = null, $reason = '' ) {
+            global $woocommerce;
+            //IMPORTANTE EXCEPTIONS: WooCommerce las capturará y las mostrará en un alert, esta es la herramienta que se dipone para comunicarse con el usuario, he probado con echo y no lo he logrado.
+
+            $logger = $this->_obtain_logger(phpversion(), $woocommerce->version, TODOPAGO_PLUGIN_VERSION, $this->ambiente, $this->getMerchant(), $order_id, true);
+            //configuración común a ambos servicios.
+            $options_return = array(
+                    "Security" => $this->getSecurity(),
+                    "Merchant" => $this->getMerchant(),
+                    "RequestKey" => get_post_meta($order_id, 'request_key', true)
+            );
+
+            //Intento instanciar la Sdk, si la configuración está mal, le avisará al usuario.
+            try {
+                $connector = new Sdk($this->getHttpHeader(), $this->ambiente);
+            }
+            catch (Exception $e) {
+                $logger->warn("Error al crear el connector, ", $e);
+                throw new Exception("Revise la configuarción de TodoPago");
+            }
+
+            //throw new exception("Conector creado");
+
+            if(empty($amount)) { //Si el amount vieniera vacío hace la devolución total
+                $logger->info("Pedido de devolución total pesos de la orden $order_id");
+                $logger->debug("Params devolución: ".json_encode($options_return));
+
+                //Intento realizar la devolución
+                try {
+                    $return_response = $connector->voidRequest($options_return);
+                }
+                catch (Exception $e) {
+                    $logger->error("Falló al consultar el servicio: ", $e);
+                    throw new Exception("Falló al consultar el servicio");
+                }
+            }
+            else {
+                $logger->info("Pedido de devolución por $amount pesos de la orden $order_id");
+                $options_return['AMOUNT'] = $amount;
+                $logger->debug("Params devolución: ".json_encode($options_return));
+
+                //Intento realizar la devolución
+                try {
+                    $return_response = $connector->returnRequest($options_return);
+                }
+                catch (Exception $e) {
+                    $logger->error("Falló al consultar el servicio: ", $e);
+                    throw new Exception("Falló al consultar el servicio");
+                }
+            }
+            $logger->debug("return Response: ".json_encode($return_response));
+
+            //Si el servicio no responde según lo esperado, se interrumpe la devolución
+            if (!is_array($return_response) || !array_key_exists('StatusCode', $return_response) || !array_key_exists('StatusMessage', $return_response)) {
+                throw new Exception("El servicio no responde correctamente");
+            }
+            if ($return_response['StatusCode'] == TODOPAGO_DEVOLUCION_OK) {
+                //retorno true para que Woo tome la devolución
+                return true;
+            }
+            else {
+                throw new Exception($return_response["StatusMessage"]);
+                //return false;
+            }
         }
 
         function process_payment($order_id){
@@ -528,3 +611,4 @@ function todopago_update_db_check() {
 }
 
 add_action('plugins_loaded', 'todopago_update_db_check');
+
