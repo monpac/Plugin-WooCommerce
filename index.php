@@ -2,12 +2,15 @@
 /*
 	Plugin Name: TodoPago para WooCommerce
     Description: TodoPago para Woocommerce.
-    Version: 1.2.5
+    Version: 1.3.0
     Author: Todo Pago
 */
 
-define('TODOPAGO_PLUGIN_VERSION','1.2.5');
+define('TODOPAGO_PLUGIN_VERSION','1.3.0');
+define('TP_FORM_EXTERNO', 'ext');
+define('TP_FORM_HIBRIDO', 'hib');
 define('TODOPAGO_DEVOLUCION_OK', 2011);
+define('TODOPAGO_FORMS_PROD','https://forms.todopago.com.ar');
 
 use TodoPago\Sdk as Sdk;
 
@@ -45,6 +48,13 @@ function woocommerce_todopago_init(){
             $this -> tipo_segmento    = $this -> settings['tipo_segmento'];
             //$this -> canal_ingreso    = $this -> settings['canal_ingreso'];
             $this -> deadline         = $this -> settings['deadline'];
+            $this->tipo_formulario    = $this -> settings['tipo_formulario'];
+
+            //Datos credentials
+            $this -> credentials      = $this -> settings['credentials'];
+            $this -> user             = $this -> settings['user'];
+            $this -> password         = $this -> settings['password'];
+            $this -> btnCredentials   = $this -> settings['btnCredentials'];
 
             //Datos ambiente de test
             $this -> http_header_test = $this -> settings['http_header_test'];
@@ -83,6 +93,7 @@ function woocommerce_todopago_init(){
         }//End __construct
 
         function init_form_fields(){
+            
             global $woocommerce;
             require_once $woocommerce -> plugin_path() . '/includes/wc-order-functions.php';
 
@@ -130,8 +141,41 @@ function woocommerce_todopago_init(){
                     'title' => 'Deadline',
                     'type'=> 'text',
                     'description' => 'Dias maximos para la entrega'),
-
-                'titulo_testing' => array( 'title' => 'Ambiente de Developers', 'type' => 'title', 'description' => 'Datos correspondientes al ambiente de developers', 'id' => 'testing_options' ),
+                
+                 'tipo_formulario' => array(
+                    'title' => 'Elija el fromulario que desea utilizar',
+                    'type' => 'select',
+                    'description' => 'Puede escojer entre un formulario integrado al comercio o redireccionar al formulario externo',
+                    'options' => array(
+                        TP_FORM_EXTERNO => 'Externo',
+                        TP_FORM_HIBRIDO => 'Integrado'
+                    )
+                ),
+                
+                'credentials' => array(
+                    'title' => 'Credenciales',
+                    'type'=> 'title'),
+                
+                'user' => array(
+                    'title' => 'User',
+                    'type'=> 'text',
+                    'description' => 'User Todo Pago'),
+                
+                'password' => array(
+                    'title' => 'Password',
+                    'type'=> 'text',
+                    'description' => 'Password Todo Pago'),
+          
+                'btnCredentials' => array(
+                    'type'=> 'button',
+                    'value' => 'Obtener Credenciales',
+                    'class' => 'button-primary'),
+                
+                'titulo_testing' => array( 
+                    'title' => 'Ambiente de Developers', 
+                    'type' => 'title', 
+                    'description' => 'Datos correspondientes al ambiente de developers', 
+                    'id' => 'testing_options' ),
 
                 'http_header_test' => array(
                     'title' => 'HTTP Header',
@@ -197,7 +241,10 @@ function woocommerce_todopago_init(){
             echo '</table><br>';
 
             $urlDataTables = plugins_url('js/jquery.dataTables.min.js', __FILE__);
+            $urlCredentials = plugins_url('js/credentials.js', __FILE__);
+            
             echo '<script type="text/javascript" src="' . $urlDataTables . '"></script>';
+            echo '<script type="text/javascript" src="' . $urlCredentials . '"></script>';
 
             include_once dirname(__FILE__)."/view/status.php";
         }
@@ -299,12 +346,29 @@ function woocommerce_todopago_init(){
                       'request_key'=>$response_sar["RequestKey"],
                       'public_request_key'=>$response_sar['PublicRequestKey']
                      ),
-                array('%d','%s','%s','%s','%s') 
+                array('%d','%s','%s','%s','%s')
             );
-
+debugger;
             if($response_sar["StatusCode"] == -1){
-                echo '<p> Gracias por su órden, click en el botón de abajo para pagar con TodoPago </p>';
-                echo $this->generate_form($order, $response_sar["URL_Request"]);
+                if ($this->tipo_formulario == TP_FORM_EXTERNO) {
+                    echo '<p> Gracias por su órden, click en el botón de abajo para pagar con TodoPago </p>';
+                    echo $this->generate_form($order, $response_sar["URL_Request"]);
+                }
+                else {
+                    $basename = plugin_basename(dirname(__FILE__));
+                    $baseurl = plugins_url();
+                    $form_dir = "$baseurl/$basename/view/formulario-hibrido";
+                    $firstname = $paramsSAR['operacion']['CSSTFIRSTNAME'];
+                    $lastname = $paramsSAR['operacion']['CSSTLASTNAME'];
+                    $email = $paramsSAR['operacion']['CSSTEMAIL'];
+                    $merchant = $paramsSAR['operacion']['MERCHANT'];
+                    $amount = $paramsSAR['operacion']['CSPTGRANDTOTALAMOUNT'];
+                    $prk = $response_sar['PublicRequestKey'];
+	            $returnURL = 'http'.(isset($_SERVER['HTTPS']) ? 's' : '').'://'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
+                    $env_url = ($this->ambiente == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_ENDPOINT_TEST)."../../..";
+
+                    require 'view/formulario-hibrido/formulario.php';
+                }
             }else{
                 $this->_printErrorMsg();
             }
@@ -541,7 +605,7 @@ function woocommerce_todopago_init(){
     }//End WC_TodoPago_Gateway
 
     //Agrego el campo teléfono de envío para cybersource
-    function custom_override_checkout_fields($fields) {
+    function todopago_custom_override_checkout_fields($fields) {
         $fields['shipping']['shipping_phone'] = array(
             'label'     => 'Teléfono',
             'required'  => true,
@@ -552,7 +616,7 @@ function woocommerce_todopago_init(){
         return $fields;
     }
 
-    add_filter( 'woocommerce_checkout_fields' , 'custom_override_checkout_fields' );
+    add_filter( 'woocommerce_checkout_fields' , 'todopago_custom_override_checkout_fields' );
 
     //Añado el medio de pago TodoPago a WooCommerce
     function woocommerce_add_todopago_gateway($methods) {
@@ -611,4 +675,14 @@ function todopago_update_db_check() {
 }
 
 add_action('plugins_loaded', 'todopago_update_db_check');
+
+function my_init() {
+	
+		// comment out the next two lines to load the local copy of jQuery
+		wp_deregister_script('jquery'); 
+		wp_register_script('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js', false, '1.3.2'); 
+		wp_enqueue_script('jquery');
+}
+
+add_action('init', 'my_init');
 

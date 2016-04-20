@@ -20,7 +20,7 @@
 
 /**
  * The default renderer, which is used when no other renderer is found.
- * 
+ *
  * Renders the input using <var>print_r</var>.
  *
  * @package log4php

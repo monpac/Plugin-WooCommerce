@@ -24,12 +24,51 @@ $connector = new Sdk($http_header, $arrayOptions['ambiente']);
 $optionsGS = array('MERCHANT'=>$_GET['merchant'],'OPERATIONID'=>$_GET['order_id']);
 $status = $connector->getStatus($optionsGS);
 
-$status_json = json_encode($status);
-
 $rta = '';
-foreach ($status['Operations'] as $key => $value) {
-	$value = is_array($value)? '': $value;
-	$rta .= "$key: $value \n";
-}
+$refunds = $status['Operations']['REFUNDS'];
+$refounds = $status['Operations']['refounds'];
 
+$auxArray = array(
+         "refound" => $refounds, 
+         "REFUND" => $refunds
+         );
+
+    if($refunds != null){  
+        $aux = 'REFUND'; 
+        $auxColection = 'REFUNDS'; 
+    }else{
+        $aux = 'refound';
+        $auxColection = 'refounds'; 
+    }
+
+    
+  if (isset($status['Operations']) && is_array($status['Operations']) ) {
+      
+        foreach ($status['Operations'] as $key => $value) {   
+            if(is_array($value) && $key == $auxColection){
+                $rta .= "$key: \n";
+                foreach ($auxArray[$aux] as $key2 => $value2) {              
+                    $rta .= $aux." \n";                
+                    if(is_array($value2)){                    
+                        foreach ($value2 as $key3 => $value3) {
+                            if(is_array($value3)){                    
+                                 foreach ($value3 as $key4 => $value4) {
+                                    $rta .= "   - $key4: $value4 \n";
+                                }
+                            }                     
+                        }
+                    }
+                }            
+            }else{             
+                if(is_array($value)){
+                    $rta .= "$key: \n";
+                }else{
+                    $rta .= "$key: $value \n";
+                }
+            }
+        }
+   }else{
+       $rta = 'No hay operaciones para esta orden.';
+   }
+ 
 echo($rta);

@@ -32,7 +32,7 @@
  * @since 0.5
  */
 class LoggerLevel {
-	
+
 	const OFF = 2147483647;
 	const FATAL = 50000;
 	const ERROR = 40000;
@@ -44,14 +44,14 @@ class LoggerLevel {
 
 	/** Integer level value. */
 	private $level;
-	
+
 	/** Contains a list of instantiated levels. */
 	private static $levelMap;
 
 	/** String representation of the level. */
 	private $levelStr;
 
-	/** 
+	/**
 	 * Equivalent syslog level.
 	 * @var integer
 	 */
@@ -74,7 +74,7 @@ class LoggerLevel {
 	 * Compares two logger levels.
 	 *
 	 * @param LoggerLevels $other
-	 * @return boolean 
+	 * @return boolean
 	 */
 	public function equals($other) {
 		if($other instanceof LoggerLevel) {
@@ -85,7 +85,7 @@ class LoggerLevel {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Returns an Off Level
 	 * @return LoggerLevel
@@ -107,7 +107,7 @@ class LoggerLevel {
 		}
 		return self::$levelMap[LoggerLevel::FATAL];
 	}
-	
+
 	/**
 	 * Returns an Error Level
 	 * @return LoggerLevel
@@ -118,7 +118,7 @@ class LoggerLevel {
 		}
 		return self::$levelMap[LoggerLevel::ERROR];
 	}
-	
+
 	/**
 	 * Returns a Warn Level
 	 * @return LoggerLevel
@@ -151,7 +151,7 @@ class LoggerLevel {
 		}
 		return self::$levelMap[LoggerLevel::DEBUG];
 	}
-	
+
 	/**
 	 * Returns a Trace Level
 	 * @return LoggerLevel
@@ -161,7 +161,7 @@ class LoggerLevel {
 			self::$levelMap[LoggerLevel::TRACE] = new LoggerLevel(LoggerLevel::TRACE, 'TRACE', LOG_DEBUG);
 		}
 		return self::$levelMap[LoggerLevel::TRACE];
-	}	
+	}
 
 	/**
 	 * Returns an All Level
@@ -173,7 +173,7 @@ class LoggerLevel {
 		}
 		return self::$levelMap[LoggerLevel::ALL];
 	}
-	
+
 	/**
 	 * Return the syslog equivalent of this level as an integer.
 	 * @return integer
@@ -201,7 +201,7 @@ class LoggerLevel {
 	public function toString() {
 		return $this->levelStr;
 	}
-	
+
 	/**
 	 * Returns the string representation of this level.
 	 * @return string
@@ -219,12 +219,12 @@ class LoggerLevel {
 	}
 
 	/**
-	 * Convert the input argument to a level. If the conversion fails, then 
+	 * Convert the input argument to a level. If the conversion fails, then
 	 * this method returns the provided default level.
 	 *
 	 * @param mixed $arg The value to convert to level.
 	 * @param LoggerLevel $default Value to return if conversion is not possible.
-	 * @return LoggerLevel 
+	 * @return LoggerLevel
 	 */
 	public static function toLevel($arg, $defaultLevel = null) {
 		if(is_int($arg)) {

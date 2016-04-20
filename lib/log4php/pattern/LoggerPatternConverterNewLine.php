@@ -19,8 +19,8 @@
  */
 
 /**
- * Returns platform-specific newline character(s). 
- * 
+ * Returns platform-specific newline character(s).
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

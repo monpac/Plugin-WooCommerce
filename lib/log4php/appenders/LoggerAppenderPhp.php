@@ -17,23 +17,23 @@
  */
 
 /**
- * LoggerAppenderPhp logs events by creating a PHP user-level message using 
+ * LoggerAppenderPhp logs events by creating a PHP user-level message using
  * the PHP's trigger_error()function.
  *
  * This appender has no configurable parameters.
  *
  * Levels are mapped as follows:
- * 
+ *
  * - <b>level < WARN</b> mapped to E_USER_NOTICE
  * - <b>WARN <= level < ERROR</b> mapped to E_USER_WARNING
- * - <b>level >= ERROR</b> mapped to E_USER_ERROR  
+ * - <b>level >= ERROR</b> mapped to E_USER_ERROR
  *
  * @version $Revision: 1337820 $
  * @package log4php
  * @subpackage appenders
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  * @link http://logging.apache.org/log4php/docs/appenders/php.html Appender documentation
- */ 
+ */
 class LoggerAppenderPhp extends LoggerAppender {
 
 	public function append(LoggerLoggingEvent $event) {

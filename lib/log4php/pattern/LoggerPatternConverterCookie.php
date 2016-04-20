@@ -19,12 +19,12 @@
  */
 
 /**
- * Returns a value from the $_COOKIE superglobal array corresponding to the 
+ * Returns a value from the $_COOKIE superglobal array corresponding to the
  * given key. If no key is given, return all values.
- * 
+ *
  * Options:
  *  [0] $_COOKIE key value
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

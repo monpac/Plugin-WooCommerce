@@ -18,37 +18,37 @@
 
 /**
  * Logs messages as HTTP headers using the FirePHP Insight API.
- * 
+ *
  * This appender requires the FirePHP server library version 1.0 or later.
- * 
+ *
  * ## Configurable parameters: ##
- * 
- * - **target** - (string) The target to which messages will be sent. Possible options are 
+ *
+ * - **target** - (string) The target to which messages will be sent. Possible options are
  *            'page' (default), 'request', 'package' and 'controller'. For more details,
  *            see FirePHP documentation.
- * 
+ *
  * This class was originally contributed by Bruce Ingalls (Bruce.Ingalls-at-gmail-dot-com).
- * 
+ *
  * @link https://github.com/firephp/firephp FirePHP homepage.
  * @link http://sourcemint.com/github.com/firephp/firephp/1:1.0.0b1rc6/-docs/Welcome FirePHP documentation.
  * @link http://sourcemint.com/github.com/firephp/firephp/1:1.0.0b1rc6/-docs/Configuration/Constants FirePHP constants documentation.
  * @link http://logging.apache.org/log4php/docs/appenders/firephp.html Appender documentation
- * 
+ *
  * @version $Revision: 1343684 $
  * @package log4php
  * @subpackage appenders
  * @since 2.3
  */
 class LoggerAppenderFirePHP extends LoggerAppender {
-	
+
 	/**
 	 * Instance of the Insight console class.
 	 * @var Insight_Plugin_Console
 	 */
 	protected $console;
-	
+
 	/**
-	 * The target for log messages. Possible values are: 'page' (default), 
+	 * The target for log messages. Possible values are: 'page' (default),
 	 * 'request', 'package' and 'contoller'.
 	 */
 	protected $target = 'page';
@@ -61,15 +61,15 @@ class LoggerAppenderFirePHP extends LoggerAppender {
 			$this->warn('FirePHP is not installed correctly. Closing appender.');
 		}
 	}
-	
+
 	public function append(LoggerLoggingEvent $event) {
 		$msg = $event->getMessage();
-		
+
 		// Skip formatting for objects and arrays which are handled by FirePHP.
 		if (!is_array($msg) && !is_object($msg)) {
 			$msg = $this->getLayout()->format($event);
 		}
-		
+
 		switch ($event->getLevel()->toInt()) {
 			case LoggerLevel::TRACE:
 			case LoggerLevel::DEBUG:
@@ -87,7 +87,7 @@ class LoggerAppenderFirePHP extends LoggerAppender {
 				break;
 		}
 	}
-	
+
 	/** Returns the target. */
 	public function getTarget() {
 		return $this->target;

@@ -19,12 +19,12 @@
  */
 
 /**
- * Returns a value from the $_SERVER superglobal array corresponding to the 
+ * Returns a value from the $_SERVER superglobal array corresponding to the
  * given key.
- * 
+ *
  * Options:
  *  [0] $_SERVER key value
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

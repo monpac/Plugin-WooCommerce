@@ -20,7 +20,7 @@
 
 /**
  * Returns the logged message.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

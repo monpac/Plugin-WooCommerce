@@ -19,12 +19,12 @@
  */
 
 /**
- * Returns a value from the $_SESSION superglobal array corresponding to the 
+ * Returns a value from the $_SESSION superglobal array corresponding to the
  * given key.
- * 
+ *
  * Options:
  *  [0] $_SESSION key value
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

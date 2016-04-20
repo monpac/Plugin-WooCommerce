@@ -22,9 +22,9 @@ class phone{
         if($logger != null){
             $logger->writeLog("numero cliente", $number);
         }
-        
+
         $number = str_replace(array(" ","(",")","-","+"),"",$number);
-        
+
         if(self::is_country_based($number)) $return = $number;
 
         if(self::is_cel($number)){
@@ -33,15 +33,15 @@ class phone{
         if(self::is_local($number)) $return = "5411".$number;
 
         if(self::is_zero_based($number)) $return = "54".substr($number,1,strlen($number));
-        
+
         if($return == null){
             $return = '54'.$number;
         }
-        
+
         if($logger != null){
             $logger->writeLog("numero procesado", $number);
         }
-        
+
         return $return;
 
     }

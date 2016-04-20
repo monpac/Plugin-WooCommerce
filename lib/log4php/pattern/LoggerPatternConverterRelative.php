@@ -19,9 +19,9 @@
  */
 
 /**
- * Returns the number of milliseconds elapsed since the start of the 
+ * Returns the number of milliseconds elapsed since the start of the
  * application until the creation of the logging event.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1379731 $

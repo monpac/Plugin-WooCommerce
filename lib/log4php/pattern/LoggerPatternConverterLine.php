@@ -19,9 +19,9 @@
  */
 
 /**
- * Returns the line number within the file from which the logging request was 
- * issued. 
- * 
+ * Returns the line number within the file from which the logging request was
+ * issued.
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

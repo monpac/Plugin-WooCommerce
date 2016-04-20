@@ -20,7 +20,7 @@
 
 /**
  * Returns the throwable information linked to the logging event, if any.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1395470 $
@@ -37,4 +37,3 @@ class LoggerPatternConverterThrowable extends LoggerPatternConverter {
 		return '';
 	}
 }
- 

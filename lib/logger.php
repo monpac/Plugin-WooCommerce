@@ -5,16 +5,16 @@ require_once dirname(__FILE__)."/log4php/Logger.php";
 class TodoPagoLogger {
 
 	public $log;
-	
+
 	protected $config;
-	
+
 	protected $php_version = null;
 	protected $commerce_version = null;
 	protected $plugin_version = null;
 	protected $end_point = null;
 	protected $customer = null;
 	protected $order = null;
-	
+
 	public function __construct() {
 		$this->config = array(
 			"appenders" => array(
@@ -58,8 +58,8 @@ class TodoPagoLogger {
 								"levelMax" => "fatal",
 							)
 						)
-					),					
-				),				
+					),
+				),
 			),
 			"loggers" => array(
 				"todopagopayment" => array(
@@ -71,14 +71,14 @@ class TodoPagoLogger {
 					"appenders" => array(
 						"AdminAppender"
 					)
-				),				
+				),
 			),
 		);
 	}
-	
+
 	public function getLogger($payment) {
 		Logger::configure($this->config);
-		
+
 		if($this->php_version != null)
 			LoggerMDC::put('php_version', $this->php_version);
 		else
@@ -105,43 +105,43 @@ class TodoPagoLogger {
 			else
 				throw new Exception("Logger Configuracion incompleta");
 		}
-			
+
 		if($payment)
 			return Logger::getLogger("todopagopayment");
 		return Logger::getLogger("todopagoadmin");
 	}
-	
+
 	public function setPhpVersion($php_version) {
 		$this->php_version = $php_version;
 	}
-	
+
 	public function setCommerceVersion($commerce_version) {
 		$this->commerce_version = $commerce_version;
 	}
-	
+
 	public function setPluginVersion($plugin_version) {
 		$this->plugin_version = $plugin_version;
 	}
-	
+
 	public function setEndPoint($end_point) {
 		$this->end_point = $end_point;
 	}
-	
+
 	public function setCustomer($customer) {
 		$this->customer = $customer;
 	}
-	
+
 	public function setOrder($order) {
 		$this->order = $order;
 	}
-	
+
 	public function setLevels($min = "trace", $max = "fatal") {
 		$this->config["appenders"]["PaymentAppender"]["filters"][0]["params"]["levelMin"] = $min;
 		$this->config["appenders"]["PaymentAppender"]["filters"][0]["params"]["levelMax"] = $max;
 		$this->config["appenders"]["AdminAppender"]["filters"][0]["params"]["levelMin"] = $min;
-		$this->config["appenders"]["AdminAppender"]["filters"][0]["params"]["levelMax"] = $max;		
+		$this->config["appenders"]["AdminAppender"]["filters"][0]["params"]["levelMax"] = $max;
 	}
-	
+
 	public function setFile($file) {
 		$this->config["appenders"]["PaymentAppender"]["params"]["file"] = $file;
 		$this->config["appenders"]["AdminAppender"]["params"]["file"] = $file;

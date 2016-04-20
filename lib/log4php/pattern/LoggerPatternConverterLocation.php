@@ -19,9 +19,9 @@
  */
 
 /**
- * Returns the line number within the file from which the logging request was 
- * issued. 
- * 
+ * Returns the line number within the file from which the logging request was
+ * issued.
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $
@@ -30,7 +30,7 @@
 class LoggerPatternConverterLocation extends LoggerPatternConverter {
 
 	public function convert(LoggerLoggingEvent $event) {
-		return 
+		return
 			$event->getLocationInformation()->getClassName() . '.' .
 			$event->getLocationInformation()->getMethodName() . '(' .
 			$event->getLocationInformation()->getFileName() . ':' .

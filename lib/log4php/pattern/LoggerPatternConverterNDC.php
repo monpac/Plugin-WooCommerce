@@ -20,7 +20,7 @@
 
 /**
  * Returns the full Nested Diagnostic Context.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $
@@ -32,4 +32,3 @@ class LoggerPatternConverterNDC extends LoggerPatternConverter {
 		return $event->getNDC();
 	}
 }
- 

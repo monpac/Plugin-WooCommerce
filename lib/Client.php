@@ -5,30 +5,29 @@ namespace TodoPago;
 class Client extends \SoapClient
 {
 	protected $custom_headers;
-
+	
 	public function __doRequest($request, $location, $action, $version, $one_way = NULL)
     {
         $soap_request = $request;
-
+		
 		$context = $this->custom_headers;
 		$custom_headers = array_filter(explode("\r\n",$context['http']['header']));
 
         $headers = array(
             "Content-type: text/xml;charset=\"utf-8\"",
             "Cache-Control: no-cache",
-            "Pragma: no-cache",
+            "Pragma: no-cache",    
             "SOAPAction: \"$action\"",
             "Content-length: ".strlen($soap_request),
         );
 
-
+		
         $soap_do = curl_init();
 
         $url = $location;
 
         $options = array(
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
 

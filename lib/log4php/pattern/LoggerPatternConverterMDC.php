@@ -20,10 +20,10 @@
 
 /**
  * Returns the Mapped Diagnostic Context value corresponding to the given key.
- * 
+ *
  * Options:
  *  [0] the MDC key
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $
@@ -38,7 +38,7 @@ class LoggerPatternConverterMDC extends LoggerPatternConverter {
 			$this->key = $this->option;
 		}
 	}
-	
+
 	public function convert(LoggerLoggingEvent $event) {
 		if (isset($this->key)) {
 			return $event->getMDC($this->key);
@@ -52,4 +52,3 @@ class LoggerPatternConverterMDC extends LoggerPatternConverter {
 		}
 	}
 }
- 

@@ -15,11 +15,11 @@ class ControlFraudeFactory {
 			case ControlFraudeFactory::RETAIL:
 				$instance = new ControlFraude_Retail($order, $customer);
 			break;
-			
+
 			case ControlFraudeFactory::SERVICE:
 				$instance = new ControlFraude_Service($order, $customer);
 			break;
-			
+
 			case ControlFraudeFactory::DIGITAL_GOODS:
 				$instance = new ControlFraude_DigitalGoods($order, $customer);
 			break;

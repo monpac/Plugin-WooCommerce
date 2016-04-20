@@ -28,38 +28,38 @@ class LoggerLoggingEvent {
 
 	private static $startTime;
 
-	/** 
+	/**
 	* @var string Fully Qualified Class Name of the calling category class.
 	*/
 	private $fqcn;
-	
+
 	/**
 	* @var Logger reference
 	*/
 	private $logger;
-	
-	/** 
+
+	/**
 	 * The category (logger) name.
 	 * This field will be marked as private in future
-	 * releases. Please do not access it directly. 
+	 * releases. Please do not access it directly.
 	 * Use the {@link getLoggerName()} method instead.
-	 * @deprecated 
+	 * @deprecated
 	 */
 	private $categoryName;
-	
-	/** 
+
+	/**
 	 * Level of the logging event.
 	 * @var LoggerLevel
 	 */
 	protected $level;
-	
-	/** 
+
+	/**
 	 * The nested diagnostic context (NDC) of logging event.
-	 * @var string  
+	 * @var string
 	 */
 	private $ndc;
-	
-	/** 
+
+	/**
 	 * Have we tried to do an NDC lookup? If we did, there is no need
 	 * to do it again.	Note that its value is always false when
 	 * serialized. Thus, a receiving SocketNode will never use it's own
@@ -67,43 +67,43 @@ class LoggerLoggingEvent {
 	 * @var boolean
 	 */
 	private $ndcLookupRequired = true;
-	
-	/** 
-	 * @var mixed The application supplied message of logging event. 
+
+	/**
+	 * @var mixed The application supplied message of logging event.
 	 */
 	private $message;
-	
-	/** 
+
+	/**
 	 * The application supplied message rendered through the log4php
 	 * objet rendering mechanism. At present renderedMessage == message.
 	 * @var string
 	 */
 	private $renderedMessage;
-	
-	/** 
+
+	/**
 	 * The name of thread in which this logging event was generated.
-	 * log4php saves here the process id via {@link PHP_MANUAL#getmypid getmypid()} 
+	 * log4php saves here the process id via {@link PHP_MANUAL#getmypid getmypid()}
 	 * @var mixed
 	 */
 	private $threadName;
-	
-	/** 
+
+	/**
 	* The number of seconds elapsed from 1/1/1970 until logging event
 	* was created plus microseconds if available.
 	* @var float
 	*/
 	public $timeStamp;
-	
-	/** 
-	* @var LoggerLocationInfo Location information for the caller. 
+
+	/**
+	* @var LoggerLocationInfo Location information for the caller.
 	*/
 	private $locationInfo;
-	
+
 	/**
 	 * @var LoggerThrowableInformation log4php internal representation of throwable
 	 */
 	private $throwableInfo;
-	
+
 	/**
 	* Instantiate a LoggingEvent from the supplied parameters.
 	*
@@ -132,7 +132,7 @@ class LoggerLoggingEvent {
 		} else {
 			$this->timeStamp = microtime(true);
 		}
-		
+
 		if ($throwable !== null && $throwable instanceof Exception) {
 			$this->throwableInfo = new LoggerThrowableInformation($throwable);
 		}
@@ -140,12 +140,12 @@ class LoggerLoggingEvent {
 
 	/**
 	 * Returns the full qualified classname.
-	 * TODO: PHP does contain namespaces in 5.3. Those should be returned too, 
+	 * TODO: PHP does contain namespaces in 5.3. Those should be returned too,
 	 */
 	 public function getFullQualifiedClassname() {
 		 return $this->fqcn;
 	 }
-	 
+
 	/**
 	 * Set the location information for this logging event. The collected
 	 * information is cached for future use.
@@ -167,7 +167,7 @@ class LoggerLoggingEvent {
 				if(isset($hop['class'])) {
 					// we are sometimes in functions = no class available: avoid php warning here
 					$className = strtolower($hop['class']);
-					if(!empty($className) and ($className == 'logger' or 
+					if(!empty($className) and ($className == 'logger' or
 						strtolower(get_parent_class($className)) == 'logger')) {
 						$locationInfo['line'] = $hop['line'];
 						$locationInfo['file'] = $hop['file'];
@@ -188,7 +188,7 @@ class LoggerLoggingEvent {
 			} else {
 				$locationInfo['function'] = 'main';
 			}
-					 
+
 			$this->locationInfo = new LoggerLocationInfo($locationInfo, $this->fqcn);
 		}
 		return $this->locationInfo;
@@ -197,7 +197,7 @@ class LoggerLoggingEvent {
 	/**
 	 * Return the level of this event. Use this form instead of directly
 	 * accessing the {@link $level} field.
-	 * @return LoggerLevel	
+	 * @return LoggerLevel
 	 */
 	public function getLevel() {
 		return $this->level;
@@ -210,11 +210,11 @@ class LoggerLoggingEvent {
 	public function getLogger() {
 		return $this->logger;
 	}
-	
+
 	/**
 	 * Return the name of the logger. Use this form instead of directly
 	 * accessing the {@link $categoryName} field.
-	 * @return string  
+	 * @return string
 	 */
 	public function getLoggerName() {
 		return $this->categoryName;
@@ -233,7 +233,7 @@ class LoggerLoggingEvent {
 	 * correct content even if the event was generated in a different
 	 * thread or even on a different machine. The {@link LoggerNDC::get()} method
 	 * should <b>never</b> be called directly.
-	 * @return string  
+	 * @return string
 	 */
 	public function getNDC() {
 		if($this->ndcLookupRequired) {
@@ -251,7 +251,7 @@ class LoggerLoggingEvent {
 	public function getMDC($key) {
 		return LoggerMDC::get($key);
 	}
-	
+
 	/**
 	 * Returns the entire MDC context.
 	 * @return array
@@ -277,7 +277,7 @@ class LoggerLoggingEvent {
 	}
 
 	/**
-	 * Returns the time when the application started, as a UNIX timestamp 
+	 * Returns the time when the application started, as a UNIX timestamp
 	 * with microseconds.
 	 * @return float
 	 */
@@ -285,7 +285,7 @@ class LoggerLoggingEvent {
 		if(!isset(self::$startTime)) {
 			self::$startTime = microtime(true);
 		}
-		return self::$startTime; 
+		return self::$startTime;
 	}
 
 	/**
@@ -294,32 +294,32 @@ class LoggerLoggingEvent {
 	public function getTimeStamp() {
 		return $this->timeStamp;
 	}
-	
+
 	/**
-	 * Returns the time in seconds passed from the beginning of execution to 
+	 * Returns the time in seconds passed from the beginning of execution to
 	 * the time the event was constructed.
-	 * 
+	 *
 	 * @return float Seconds with microseconds in decimals.
 	 */
 	public function getRelativeTime() {
 		return $this->timeStamp - self::$startTime;
 	}
-	
+
 	/**
 	 * Returns the time in milliseconds passed from the beginning of execution
 	 * to the time the event was constructed.
-	 * 
-	 * @deprecated This method has been replaced by getRelativeTime which 
+	 *
+	 * @deprecated This method has been replaced by getRelativeTime which
 	 * 		does not perform unneccesary multiplication and formatting.
-	 * 
-	 * @return integer 
+	 *
+	 * @return integer
 	 */
 	public function getTime() {
 		$eventTime = $this->getTimeStamp();
 		$eventStartTime = LoggerLoggingEvent::getStartTime();
 		return number_format(($eventTime - $eventStartTime) * 1000, 0, '', '');
 	}
-	
+
 	/**
 	 * @return mixed
 	 */
@@ -336,7 +336,7 @@ class LoggerLoggingEvent {
 	public function getThrowableInformation() {
 		return $this->throwableInfo;
 	}
-	
+
 	/**
 	 * Serialize this object
 	 * @return string
@@ -344,7 +344,7 @@ class LoggerLoggingEvent {
 	public function toString() {
 		serialize($this);
 	}
-	
+
 	/**
 	 * Avoid serialization of the {@link $logger} object
 	 */

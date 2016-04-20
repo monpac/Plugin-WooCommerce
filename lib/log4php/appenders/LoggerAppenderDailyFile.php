@@ -19,21 +19,21 @@
 /**
  * An Appender that automatically creates a new logfile each day.
  *
- * The file is rolled over once a day. That means, for each day a new file 
- * is created. A formatted version of the date pattern is used as to create 
+ * The file is rolled over once a day. That means, for each day a new file
+ * is created. A formatted version of the date pattern is used as to create
  * the file name using the {@link PHP_MANUAL#sprintf} function.
  *
  * This appender uses a layout.
- * 
+ *
  * ##Configurable parameters:##
- * 
+ *
  * - **datePattern** - Format for the date in the file path, follows formatting
  *     rules used by the PHP date() function. Default value: "Ymd".
- * - **file** - Path to the target file. Should contain a %s which gets 
+ * - **file** - Path to the target file. Should contain a %s which gets
  *     substituted by the date.
- * - **append** - If set to true, the appender will append to the file, 
+ * - **append** - If set to true, the appender will append to the file,
  *     otherwise the file contents will be overwritten. Defaults to true.
- * 
+ *
  * @version $Revision: 1382274 $
  * @package log4php
  * @subpackage appenders
@@ -48,7 +48,7 @@ class LoggerAppenderDailyFile extends LoggerAppenderFile {
 	 * @var string
 	 */
 	protected $datePattern = "Ymd";
-	
+
 	/**
 	 * Current date which was used when opening a file.
 	 * Used to determine if a rollover is needed when the date changes.
@@ -59,7 +59,7 @@ class LoggerAppenderDailyFile extends LoggerAppenderFile {
 	/** Additional validation for the date pattern. */
 	public function activateOptions() {
 		parent::activateOptions();
-	
+
 		if (empty($this->datePattern)) {
 			$this->warn("Required parameter 'datePattern' not set. Closing appender.");
 			$this->closed = true;
@@ -69,23 +69,23 @@ class LoggerAppenderDailyFile extends LoggerAppenderFile {
 
 	/**
 	 * Appends a logging event.
-	 * 
-	 * If the target file changes because of passage of time (e.g. at midnight) 
-	 * the current file is closed. A new file, with the new date, will be 
-	 * opened by the write() method. 
+	 *
+	 * If the target file changes because of passage of time (e.g. at midnight)
+	 * the current file is closed. A new file, with the new date, will be
+	 * opened by the write() method.
 	 */
 	public function append(LoggerLoggingEvent $event) {
 		$eventDate = $this->getDate($event->getTimestamp());
-		
+
 		// Initial setting of current date
 		if (!isset($this->currentDate)) {
 			$this->currentDate = $eventDate;
-		} 
-		
+		}
+
 		// Check if rollover is needed
 		else if ($this->currentDate !== $eventDate) {
 			$this->currentDate = $eventDate;
-			
+
 			// Close the file if it's open.
 			// Note: $this->close() is not called here because it would set
 			//       $this->closed to true and the appender would not recieve
@@ -96,22 +96,22 @@ class LoggerAppenderDailyFile extends LoggerAppenderFile {
 			}
 			$this->fp = null;
 		}
-	
+
 		parent::append($event);
 	}
-	
+
 	/** Renders the date using the configured <var>datePattern<var>. */
 	protected function getDate($timestamp = null) {
 		return date($this->datePattern, $timestamp);
 	}
-	
+
 	/**
-	 * Determines target file. Replaces %s in file path with a date. 
+	 * Determines target file. Replaces %s in file path with a date.
 	 */
 	protected function getTargetFile() {
 		return str_replace('%s', $this->currentDate, $this->file);
 	}
-	
+
 	/**
 	 * Sets the 'datePattern' parameter.
 	 * @param string $datePattern
@@ -119,7 +119,7 @@ class LoggerAppenderDailyFile extends LoggerAppenderFile {
 	public function setDatePattern($datePattern) {
 		$this->setString('datePattern', $datePattern);
 	}
-	
+
 	/**
 	 * Returns the 'datePattern' parameter.
 	 * @return string

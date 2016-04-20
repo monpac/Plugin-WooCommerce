@@ -19,8 +19,8 @@
  */
 
 /**
- * Returns the active session ID, or an empty string if out of session. 
- * 
+ * Returns the active session ID, or an empty string if out of session.
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

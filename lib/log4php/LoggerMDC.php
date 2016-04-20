@@ -20,26 +20,26 @@
 
 /**
  * The LoggerMDC class provides _mapped diagnostic contexts_.
- * 
- * A Mapped Diagnostic Context, or MDC in short, is an instrument for 
- * distinguishing interleaved log output from different sources. Log output 
- * is typically interleaved when a server handles multiple clients 
+ *
+ * A Mapped Diagnostic Context, or MDC in short, is an instrument for
+ * distinguishing interleaved log output from different sources. Log output
+ * is typically interleaved when a server handles multiple clients
  * near-simultaneously.
- * 
- * This class is similar to the {@link LoggerNDC} class except that 
+ *
+ * This class is similar to the {@link LoggerNDC} class except that
  * it is based on a map instead of a stack.
- * 
+ *
  * @version $Revision: 1343630 $
  * @since 0.3
  * @package log4php
  */
 class LoggerMDC {
-	
+
 	/** Holds the context map. */
 	private static $map = array();
-		
+
 	/**
-	 * Stores a context value as identified with the key parameter into the 
+	 * Stores a context value as identified with the key parameter into the
 	 * context map.
 	 *
 	 * @param string $key the key
@@ -48,7 +48,7 @@ class LoggerMDC {
 	public static function put($key, $value) {
 		self::$map[$key] = $value;
 	}
-  
+
 	/**
 	 * Returns the context value identified by the key parameter.
 	 *
@@ -69,7 +69,7 @@ class LoggerMDC {
 	}
 
 	/**
-	 * Removes the the context identified by the key parameter. 
+	 * Removes the the context identified by the key parameter.
 	 *
 	 * Only affects user mappings, not $_ENV or $_SERVER.
 	 *
@@ -78,7 +78,7 @@ class LoggerMDC {
 	public static function remove($key) {
 		unset(self::$map[$key]);
 	}
-	
+
 	/**
 	 * Clears the mapped diagnostic context.
 	 */

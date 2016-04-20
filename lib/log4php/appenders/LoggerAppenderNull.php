@@ -17,10 +17,10 @@
  */
 
 /**
- * A NullAppender merely exists, it never outputs a message to any device.	
+ * A NullAppender merely exists, it never outputs a message to any device.
  *
  * This appender has no configurable parameters.
- * 
+ *
  * @version $Revision: 1343601 $
  * @package log4php
  * @subpackage appenders
@@ -29,14 +29,14 @@
  */
 class LoggerAppenderNull extends LoggerAppender {
 
-	/** 
-	 * This appender does not require a layout. 
+	/**
+	 * This appender does not require a layout.
 	 */
 	protected $requiresLayout = false;
-	
+
 	/**
-	 * Do nothing. 
-	 * 
+	 * Do nothing.
+	 *
 	 * @param LoggerLoggingEvent $event
 	 */
 	public function append(LoggerLoggingEvent $event) {

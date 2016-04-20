@@ -20,103 +20,103 @@
 
 /**
  * A flexible layout configurable with a pattern string.
- * 
+ *
  * Configurable parameters:
- * 
- * * converionPattern - A string which controls the formatting of logging 
+ *
+ * * converionPattern - A string which controls the formatting of logging
  *   events. See docs for full specification.
- * 
+ *
  * @package log4php
  * @subpackage layouts
  * @version $Revision: 1395470 $
  */
 class LoggerLayoutPattern extends LoggerLayout {
-	
+
 	/** Default conversion pattern */
 	const DEFAULT_CONVERSION_PATTERN = '%date %-5level %logger %message%newline';
 
 	/** Default conversion TTCC Pattern */
 	const TTCC_CONVERSION_PATTERN = '%d [%t] %p %c %x - %m%n';
 
-	/** The conversion pattern. */ 
+	/** The conversion pattern. */
 	protected $pattern = self::DEFAULT_CONVERSION_PATTERN;
-	
+
 	/** Maps conversion keywords to the relevant converter (default implementation). */
 	protected static $defaultConverterMap = array(
 		'c' => 'LoggerPatternConverterLogger',
 		'lo' => 'LoggerPatternConverterLogger',
 		'logger' => 'LoggerPatternConverterLogger',
-		
+
 		'C' => 'LoggerPatternConverterClass',
 		'class' => 'LoggerPatternConverterClass',
-		
+
 		'cookie' => 'LoggerPatternConverterCookie',
-		
+
 		'd' => 'LoggerPatternConverterDate',
 		'date' => 'LoggerPatternConverterDate',
-		
+
 		'e' => 'LoggerPatternConverterEnvironment',
 		'env' => 'LoggerPatternConverterEnvironment',
-		
+
 		'ex' => 'LoggerPatternConverterThrowable',
 		'exception' => 'LoggerPatternConverterThrowable',
 		'throwable' => 'LoggerPatternConverterThrowable',
-		
+
 		'F' => 'LoggerPatternConverterFile',
 		'file' => 'LoggerPatternConverterFile',
-			
+
 		'l' => 'LoggerPatternConverterLocation',
 		'location' => 'LoggerPatternConverterLocation',
-		
+
 		'L' => 'LoggerPatternConverterLine',
 		'line' => 'LoggerPatternConverterLine',
-		
+
 		'm' => 'LoggerPatternConverterMessage',
 		'msg' => 'LoggerPatternConverterMessage',
 		'message' => 'LoggerPatternConverterMessage',
-		
+
 		'M' => 'LoggerPatternConverterMethod',
 		'method' => 'LoggerPatternConverterMethod',
-		
+
 		'n' => 'LoggerPatternConverterNewLine',
 		'newline' => 'LoggerPatternConverterNewLine',
-		
+
 		'p' => 'LoggerPatternConverterLevel',
 		'le' => 'LoggerPatternConverterLevel',
 		'level' => 'LoggerPatternConverterLevel',
-	
+
 		'r' => 'LoggerPatternConverterRelative',
 		'relative' => 'LoggerPatternConverterRelative',
-		
+
 		'req' => 'LoggerPatternConverterRequest',
 		'request' => 'LoggerPatternConverterRequest',
-		
+
 		's' => 'LoggerPatternConverterServer',
 		'server' => 'LoggerPatternConverterServer',
-		
+
 		'ses' => 'LoggerPatternConverterSession',
 		'session' => 'LoggerPatternConverterSession',
-		
+
 		'sid' => 'LoggerPatternConverterSessionID',
 		'sessionid' => 'LoggerPatternConverterSessionID',
-	
+
 		't' => 'LoggerPatternConverterProcess',
 		'pid' => 'LoggerPatternConverterProcess',
 		'process' => 'LoggerPatternConverterProcess',
-		
+
 		'x' => 'LoggerPatternConverterNDC',
 		'ndc' => 'LoggerPatternConverterNDC',
-			
+
 		'X' => 'LoggerPatternConverterMDC',
 		'mdc' => 'LoggerPatternConverterMDC',
 	);
 
 	/** Maps conversion keywords to the relevant converter. */
 	protected $converterMap = array();
-	
-	/** 
+
+	/**
 	 * Head of a chain of Converters.
-	 * @var LoggerPatternConverter 
+	 * @var LoggerPatternConverter
 	 */
 	private $head;
 
@@ -124,12 +124,12 @@ class LoggerLayoutPattern extends LoggerLayout {
 	public static function getDefaultConverterMap() {
 		return self::$defaultConverterMap;
 	}
-	
+
 	/** Constructor. Initializes the converter map. */
 	public function __construct() {
 		$this->converterMap = self::$defaultConverterMap;
 	}
-	
+
 	/**
 	 * Sets the conversionPattern option. This is the string which
 	 * controls formatting and consists of a mix of literal content and
@@ -139,20 +139,20 @@ class LoggerLayoutPattern extends LoggerLayout {
 	public function setConversionPattern($conversionPattern) {
 		$this->pattern = $conversionPattern;
 	}
-	
+
 	/**
-	 * Processes the conversion pattern and creates a corresponding chain of 
-	 * pattern converters which will be used to format logging events. 
+	 * Processes the conversion pattern and creates a corresponding chain of
+	 * pattern converters which will be used to format logging events.
 	 */
 	public function activateOptions() {
 		if (!isset($this->pattern)) {
 			throw new LoggerException("Mandatory parameter 'conversionPattern' is not set.");
 		}
-		
+
 		$parser = new LoggerPatternParser($this->pattern, $this->converterMap);
 		$this->head = $parser->parse();
 	}
-	
+
 	/**
 	 * Produces a formatted string as specified by the conversion pattern.
 	 *

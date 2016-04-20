@@ -22,29 +22,29 @@
  * This appenders requires a layout.
  *
  * ## Configurable parameters: ##
- * 
+ *
  * - **ident** - The ident of the syslog message.
- * - **priority** - The priority for the syslog message (used when overriding 
+ * - **priority** - The priority for the syslog message (used when overriding
  *     priority).
  * - **facility** - The facility for the syslog message
- * - **overridePriority** - If set to true, the message priority will always 
+ * - **overridePriority** - If set to true, the message priority will always
  *     use the value defined in {@link $priority}, otherwise the priority will
- *     be determined by the message's log level.  
- * - **option** - The option value for the syslog message. 
+ *     be determined by the message's log level.
+ * - **option** - The option value for the syslog message.
  *
  * Recognised syslog options are:
- * 
+ *
  * - CONS 	 - if there is an error while sending data to the system logger, write directly to the system console
  * - NDELAY - open the connection to the logger immediately
  * - ODELAY - delay opening the connection until the first message is logged (default)
  * - PERROR - print log message also to standard error
  * - PID    - include PID with each message
- * 
- * Multiple options can be set by delimiting them with a pipe character, 
+ *
+ * Multiple options can be set by delimiting them with a pipe character,
  * e.g.: "CONS|PID|PERROR".
- * 
+ *
  * Recognised syslog priorities are:
- * 
+ *
  * - EMERG
  * - ALERT
  * - CRIT
@@ -55,9 +55,9 @@
  * - DEBUG
  *
  * Levels are mapped as follows:
- * 
+ *
  * - <b>FATAL</b> to LOG_ALERT
- * - <b>ERROR</b> to LOG_ERR 
+ * - <b>ERROR</b> to LOG_ERR
  * - <b>WARN</b> to LOG_WARNING
  * - <b>INFO</b> to LOG_INFO
  * - <b>DEBUG</b> to LOG_DEBUG
@@ -68,41 +68,41 @@
  * @subpackage appenders
  * @license http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  * @link http://logging.apache.org/log4php/docs/appenders/syslog.html Appender documentation
- */ 
+ */
 class LoggerAppenderSyslog extends LoggerAppender {
-	
+
 	/**
 	 * The ident string is added to each message. Typically the name of your application.
-	 * 
-	 * @var string 
+	 *
+	 * @var string
 	 */
 	protected $ident = "Apache log4php";
 
 	/**
-	 * The syslog priority to use when overriding priority. This setting is 
-	 * required if {@link overridePriority} is set to true. 
-	 * 
-	 * @var string 
+	 * The syslog priority to use when overriding priority. This setting is
+	 * required if {@link overridePriority} is set to true.
+	 *
+	 * @var string
 	 */
 	protected $priority;
-	
+
 	/**
 	 * The option used when opening the syslog connection.
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $option = 'PID|CONS';
-	
+
 	/**
 	 * The facility value indicates the source of the message.
 	 *
 	 * @var string
 	 */
 	protected $facility = 'USER';
-	
+
 	/**
-	 * If set to true, the message priority will always use the value defined 
-	 * in {@link $priority}, otherwise the priority will be determined by the 
+	 * If set to true, the message priority will always use the value defined
+	 * in {@link $priority}, otherwise the priority will be determined by the
 	 * message's log level.
 	 *
 	 * @var string
@@ -114,13 +114,13 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	 * @var int
 	 */
 	private $intPriority;
-	
+
 	/**
 	 * Holds the int value of the {@link $facility}.
 	 * @var int
 	 */
 	private $intFacility;
-	
+
 	/**
 	 * Holds the int value of the {@link $option}.
 	 * @var int
@@ -133,9 +133,9 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	 * @param string $ident
 	 */
 	public function setIdent($ident) {
-		$this->ident = $ident; 
+		$this->ident = $ident;
 	}
-	
+
 	/**
 	 * Sets the {@link $priority}.
 	 *
@@ -144,7 +144,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function setPriority($priority) {
 		$this->priority = $priority;
 	}
-	
+
 	/**
 	 * Sets the {@link $facility}.
 	 *
@@ -152,8 +152,8 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	 */
 	public function setFacility($facility) {
 		$this->facility = $facility;
-	} 
-	
+	}
+
 	/**
 	 * Sets the {@link $overridePriority}.
 	 *
@@ -161,8 +161,8 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	 */
 	public function setOverridePriority($overridePriority) {
 		$this->overridePriority = $overridePriority;
-	} 
-	
+	}
+
 	/**
 	* Sets the 'option' parameter.
 	*
@@ -171,7 +171,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function setOption($option) {
 		$this->option = $option;
 	}
-	
+
 	/**
 	* Returns the 'ident' parameter.
 	*
@@ -180,7 +180,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function getIdent() {
 		return $this->ident;
 	}
-	
+
 	/**
 	 * Returns the 'priority' parameter.
 	 *
@@ -189,7 +189,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function getPriority() {
 		return $this->priority;
 	}
-	
+
 	/**
 	 * Returns the 'facility' parameter.
 	 *
@@ -198,7 +198,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function getFacility() {
 		return $this->facility;
 	}
-	
+
 	/**
 	 * Returns the 'overridePriority' parameter.
 	 *
@@ -207,7 +207,7 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function getOverridePriority() {
 		return $this->overridePriority;
 	}
-	
+
 	/**
 	 * Returns the 'option' parameter.
 	 *
@@ -216,16 +216,16 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function getOption() {
 		return $this->option;
 	}
-	
-	
+
+
 	public function activateOptions() {
 		$this->intPriority = $this->parsePriority();
 		$this->intOption   = $this->parseOption();
 		$this->intFacility = $this->parseFacility();
-		
+
 		$this->closed = false;
 	}
-	
+
 	public function close() {
 		if($this->closed != true) {
 			closelog();
@@ -233,11 +233,11 @@ class LoggerAppenderSyslog extends LoggerAppender {
 		}
 	}
 
-	/** 
+	/**
 	 * Appends the event to syslog.
-	 * 
+	 *
 	 * Log is opened and closed each time because if it is not closed, it
-	 * can cause the Apache httpd server to log to whatever ident/facility 
+	 * can cause the Apache httpd server to log to whatever ident/facility
 	 * was used in openlog().
 	 *
 	 * @see http://www.php.net/manual/en/function.syslog.php#97843
@@ -245,12 +245,12 @@ class LoggerAppenderSyslog extends LoggerAppender {
 	public function append(LoggerLoggingEvent $event) {
 		$priority = $this->getSyslogPriority($event->getLevel());
 		$message = $this->layout->format($event);
-	
+
 		openlog($this->ident, $this->intOption, $this->intFacility);
 		syslog($priority, $message);
 		closelog();
 	}
-	
+
 	/** Determines which syslog priority to use based on the given level. */
 	private function getSyslogPriority(LoggerLevel $level) {
 		if($this->overridePriority) {
@@ -258,12 +258,12 @@ class LoggerAppenderSyslog extends LoggerAppender {
 		}
 		return $level->getSyslogEquivalent();
 	}
-	
+
 	/** Parses a syslog option string and returns the correspodning int value. */
 	private function parseOption() {
 		$value = 0;
 		$options = explode('|', $this->option);
-	
+
 		foreach($options as $option) {
 			if (!empty($option)) {
 				$constant = "LOG_" . trim($option);
@@ -276,10 +276,10 @@ class LoggerAppenderSyslog extends LoggerAppender {
 		}
 		return $value;
 	}
-	
+
 	/** Parses the facility string and returns the corresponding int value. */
 	private function parseFacility() {
-		if (!empty($this->facility)) {   
+		if (!empty($this->facility)) {
 			$constant = "LOG_" . trim($this->facility);
 			if (defined($constant)) {
 				return constant($constant);
@@ -298,6 +298,6 @@ class LoggerAppenderSyslog extends LoggerAppender {
 			} else {
 				trigger_error("log4php: Invalid syslog priority provided: {$this->priority}.", E_USER_WARNING);
 			}
-		}	
+		}
 	}
 }

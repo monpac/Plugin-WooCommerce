@@ -20,10 +20,10 @@
 
 /**
  * Returns the name of the logger which created the logging request.
- * 
- * Takes one option, which is an integer. If the option is given, the logger 
+ *
+ * Takes one option, which is an integer. If the option is given, the logger
  * name will be shortened to the given length, if possible.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $
@@ -33,33 +33,33 @@ class LoggerPatternConverterLogger extends LoggerPatternConverter {
 
 	/** Length to which to shorten the name. */
 	private $length;
-	
+
 	/** Holds processed logger names. */
 	private $cache = array();
-	
+
 	public function activateOptions() {
 		// Parse the option (desired output length)
 		if (isset($this->option) && is_numeric($this->option) && $this->option >= 0) {
 			$this->length = (integer) $this->option;
 		}
 	}
-	
+
 	public function convert(LoggerLoggingEvent $event) {
 		$name = $event->getLoggerName();
-		
+
 		if (!isset($this->cache[$name])) {
 
-			// If length is set return shortened logger name 
+			// If length is set return shortened logger name
 			if (isset($this->length)) {
 				$this->cache[$name] = LoggerUtils::shortenClassName($name, $this->length);
-			} 
-			
+			}
+
 			// If no length is specified return full logger name
 			else {
 				$this->cache[$name] = $name;
 			}
-		} 
-		
+		}
+
 		return $this->cache[$name];
 	}
 }

@@ -19,32 +19,32 @@ abstract class ControlFraude {
 
 	private function completeCF(){
 		$payDataOperacion = array();
-        
+
         $payDataOperacion['AMOUNT'] = $this->order->order_total;
         $payDataOperacion['EMAILCLIENTE'] = $this->order->billing_email;
 		$payDataOperacion['CSBTCITY'] = $this->getField($this->order->billing_city);
 		$payDataOperacion['CSBTCOUNTRY'] = $this->order->billing_country;
-		$payDataOperacion['CSBTCUSTOMERID'] = $this->order->customer_user;        
+		$payDataOperacion['CSBTCUSTOMERID'] = $this->order->customer_user;
 		$payDataOperacion['CSBTIPADDRESS'] = ($this->order->customer_ip_address == '::1') ? '127.0.0.1' : $this->order->customer_ip_address;
 		$payDataOperacion['CSBTEMAIL'] = $this->order->billing_email;
 		$payDataOperacion['CSBTFIRSTNAME'] = $this->order->billing_first_name;
-		$payDataOperacion['CSBTLASTNAME'] = $this->order->billing_last_name;      
+		$payDataOperacion['CSBTLASTNAME'] = $this->order->billing_last_name;
 		$payDataOperacion['CSBTPOSTALCODE'] = $this->order->billing_postcode;
-		$payDataOperacion['CSBTPHONENUMBER'] = phone::clean($this->order->billing_phone);    
-		$payDataOperacion['CSBTSTATE'] =  $this->_getStateCode($this->order->billing_state);    
+		$payDataOperacion['CSBTPHONENUMBER'] = phone::clean($this->order->billing_phone);
+		$payDataOperacion['CSBTSTATE'] =  $this->_getStateCode($this->order->billing_state);
 		$payDataOperacion['CSBTSTREET1'] = $this->order->billing_address_1;
 		//$payDataOperacion['CSBTSTREET2'] = $this->order->billing_address_2;
 		$payDataOperacion['CSPTCURRENCY'] = "ARS";
 		$payDataOperacion['CSPTGRANDTOTALAMOUNT'] = number_format($payDataOperacion['AMOUNT'],2,".","");
 		//$payDataOperacion['CSMDD6'] = $this->config->get('canaldeingresodelpedido');
-        
+
 		if(!empty($this->customer)) {
 	        //CSMDD7 - Fecha Registro Comprador (num Dias) - ver que pasa si es guest
 	        $payDataOperacion['CSMDD7'] = $this->_getDateTimeDiff($this->customer->data->user_registered);
 			//CSMDD8 - Usuario Guest? (S/N). En caso de ser Y, el campo CSMDD9 no deber&acute; enviarse
             $payDataOperacion['CSMDD8'] = "S";
 			//CSMDD9 - Customer password Hash: criptograma asociado al password del comprador final
-            $payDataOperacion['CSMDD9'] = $this->customer->data->user_pass;   
+            $payDataOperacion['CSMDD9'] = $this->customer->data->user_pass;
         } else {
             $payDataOperacion['CSMDD8'] = "N";
         }
@@ -88,7 +88,7 @@ abstract class ControlFraude {
       );
 
       $name = strtolower($stateName);
-      
+
       $no_permitidas = array("á","é","í","ó","ú");
       $permitidas = array("a","e","i","o","u");
       $name = str_replace($no_permitidas, $permitidas ,$name);
@@ -140,14 +140,17 @@ abstract class ControlFraude {
 			if($terms && ! is_wp_error($terms)){
 				$product_cat = $terms[0]->name;
 			}
+
 			$productcode_array[] = $product_cat;
-	        $descripcion = ($cart_item_array['data']->post->post_content == null) ? '' : substr($this->_sanitize_string($cart_item_array['data']->post ->post_content),0,50);
-	        $description_array[] = $descripcion;         
-	        $name_array[] = str_replace('#', '', $cart_item_array['data']->post->post_title);
-	        $sku_array[] = str_replace('#', '', empty($sku) ? $cart_item_array['product_id'] : $sku);
-	        $totalamount_array[] = number_format($cart_item_array['line_total'],2,".","");
-	        $quantity_array[] = $cart_item_array['quantity'];
-	        $price_array[] = number_format($cart_item_array['data']->price,2,".","");	
+
+                        $descripcion = $this->_setDescription($cart_item_array);
+                        $description_array[] = $descripcion;
+
+                        $name_array[] = str_replace('#', '', $cart_item_array['data']->post->post_title);
+                        $sku_array[] = str_replace('#', '', empty($sku) ? $cart_item_array['product_id'] : $sku);
+                        $totalamount_array[] = number_format($cart_item_array['line_total'],2,".","");
+                        $quantity_array[] = $cart_item_array['quantity'];
+                        $price_array[] = number_format($cart_item_array['data']->price,2,".","");
 		}
 
 		$payDataOperacion['CSITPRODUCTCODE'] = join('#', $productcode_array);
@@ -172,6 +175,36 @@ abstract class ControlFraude {
 	}
 
 	protected abstract function getCategoryArray($productId);
+        
 	protected abstract function completeCFVertical();
+
+	private function _setDescription($cart_item_array){
+
+		$return = "";
+		$name = $cart_item_array['data']->post->post_title;
+		$description = $cart_item_array['data']->post->post_content;
+		$shortDescription = $cart_item_array['data']->post->post_excerpt;
+	
+		if($description == null or empty($description)){
+
+			if($shortDescription == null or empty($shortDescription)){
+				$return = strip_tags($name);
+				$return = substr($this->_sanitize_string($return),0,50);
+			}else{
+				$return = strip_tags($shortDescription);
+				$return = substr($this->_sanitize_string($return),0,50);
+			}
+
+		}else{
+			$return = substr($this->_sanitize_string($description),0,50);
+		}
+
+        return $return;
+	}
+
+
+
+
+
 
 }

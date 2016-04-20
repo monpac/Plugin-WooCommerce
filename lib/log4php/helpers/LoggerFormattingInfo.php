@@ -21,31 +21,31 @@
 /**
  * This class encapsulates the information obtained when parsing
  * formatting modifiers in conversion modifiers.
- * 
+ *
  * @package log4php
  * @subpackage helpers
  * @since 0.3
  */
 class LoggerFormattingInfo {
-	
-	/** 
+
+	/**
 	 * Minimal output length. If output is shorter than this value, it will be
-	 * padded with spaces. 
+	 * padded with spaces.
 	 */
 	public $min = 0;
-	
-	/** 
-	 * Maximum output length. If output is longer than this value, it will be 
+
+	/**
+	 * Maximum output length. If output is longer than this value, it will be
 	 * trimmed.
 	 */
 	public $max = PHP_INT_MAX;
-	
+
 	/**
-	 * Whether to pad the string from the left. If set to false, the string 
-	 * will be padded from the right. 
+	 * Whether to pad the string from the left. If set to false, the string
+	 * will be padded from the right.
 	 */
 	public $padLeft = true;
-	
+
 	/**
 	 * Whether to trim the string from the left. If set to false, the string
 	 * will be trimmed from the right.

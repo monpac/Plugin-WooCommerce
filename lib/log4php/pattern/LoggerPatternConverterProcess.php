@@ -20,7 +20,7 @@
 
 /**
  * Returns the PID of the current process.
- * 
+ *
  * @package log4php
  * @subpackage pattern
  * @version $Revision: 1326626 $

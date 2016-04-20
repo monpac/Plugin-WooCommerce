@@ -20,12 +20,12 @@
  * LoggerAppenderFile appends log events to a file.
  *
  * This appender uses a layout.
- * 
+ *
  * ## Configurable parameters: ##
- * 
- * - **file** - Path to the target file. Relative paths are resolved based on 
+ *
+ * - **file** - Path to the target file. Relative paths are resolved based on
  *     the working directory.
- * - **append** - If set to true, the appender will append to the file, 
+ * - **append** - If set to true, the appender will append to the file,
  *     otherwise the file contents will be overwritten.
  *
  * @version $Revision: 1382274 $
@@ -37,25 +37,25 @@
 class LoggerAppenderFile extends LoggerAppender {
 
 	/**
-	 * If set to true, the file is locked before appending. This allows 
+	 * If set to true, the file is locked before appending. This allows
 	 * concurrent access. However, appending without locking is faster so
 	 * it should be used where appropriate.
-	 * 
+	 *
 	 * TODO: make this a configurable parameter
-	 * 
+	 *
 	 * @var boolean
 	 */
 	protected $locking = true;
-	
+
 	/**
 	 * If set to true, appends to file. Otherwise overwrites it.
 	 * @var boolean
 	 */
 	protected $append = true;
-	
+
 	/**
 	 * Path to the target file.
-	 * @var string 
+	 * @var string
 	 */
 	protected $file;
 
@@ -64,18 +64,18 @@ class LoggerAppenderFile extends LoggerAppender {
 	 * @var resource
 	 */
 	protected $fp;
-	
-	/** 
-	 * Helper function which can be easily overriden by daily file appender. 
+
+	/**
+	 * Helper function which can be easily overriden by daily file appender.
 	 */
 	protected function getTargetFile() {
 		return $this->file;
 	}
-	
+
 	/**
-	 * Acquires the target file resource, creates the destination folder if 
+	 * Acquires the target file resource, creates the destination folder if
 	 * necessary. Writes layout header to file.
-	 * 
+	 *
 	 * @return boolean FALSE if opening failed
 	 */
 	protected function openFile() {
@@ -94,7 +94,7 @@ class LoggerAppenderFile extends LoggerAppender {
 				}
 			}
 		}
-		
+
 		$mode = $this->append ? 'a' : 'w';
 		$this->fp = fopen($file, $mode);
 		if ($this->fp === false) {
@@ -103,16 +103,16 @@ class LoggerAppenderFile extends LoggerAppender {
 			$this->closed = true;
 			return false;
 		}
-		
+
 		// Required when appending with concurrent access
 		if($this->append) {
 			fseek($this->fp, 0, SEEK_END);
 		}
-		
+
 		// Write the header
 		$this->write($this->layout->getHeader());
 	}
-	
+
 	/**
 	 * Writes a string to the target file. Opens file if not already open.
 	 * @param string $string Data to write.
@@ -124,19 +124,19 @@ class LoggerAppenderFile extends LoggerAppender {
 				return; // Do not write if file open failed.
 			}
 		}
-		
+
 		if ($this->locking) {
 			$this->writeWithLocking($string);
 		} else {
 			$this->writeWithoutLocking($string);
 		}
 	}
-	
+
 	protected function writeWithLocking($string) {
 		if(flock($this->fp, LOCK_EX)) {
 			if(fwrite($this->fp, $string) === false) {
 				$this->warn("Failed writing to file. Closing appender.");
-				$this->closed = true;				
+				$this->closed = true;
 			}
 			flock($this->fp, LOCK_UN);
 		} else {
@@ -144,14 +144,14 @@ class LoggerAppenderFile extends LoggerAppender {
 			$this->closed = true;
 		}
 	}
-	
+
 	protected function writeWithoutLocking($string) {
 		if(fwrite($this->fp, $string) === false) {
 			$this->warn("Failed writing to file. Closing appender.");
-			$this->closed = true;				
+			$this->closed = true;
 		}
 	}
-	
+
 	public function activateOptions() {
 		if (empty($this->file)) {
 			$this->warn("Required parameter 'file' not set. Closing appender.");
@@ -159,7 +159,7 @@ class LoggerAppenderFile extends LoggerAppender {
 			return;
 		}
 	}
-	
+
 	public function close() {
 		if (is_resource($this->fp)) {
 			$this->write($this->layout->getFooter());
@@ -172,7 +172,7 @@ class LoggerAppenderFile extends LoggerAppender {
 	public function append(LoggerLoggingEvent $event) {
 		$this->write($this->layout->format($event));
 	}
-	
+
 	/**
 	 * Sets the 'file' parameter.
 	 * @param string $file
@@ -180,7 +180,7 @@ class LoggerAppenderFile extends LoggerAppender {
 	public function setFile($file) {
 		$this->setString('file', $file);
 	}
-	
+
 	/**
 	 * Returns the 'file' parameter.
 	 * @return string
@@ -188,7 +188,7 @@ class LoggerAppenderFile extends LoggerAppender {
 	public function getFile() {
 		return $this->file;
 	}
-	
+
 	/**
 	 * Returns the 'append' parameter.
 	 * @return boolean
@@ -213,7 +213,7 @@ class LoggerAppenderFile extends LoggerAppender {
 	public function setFileName($fileName) {
 		$this->setFile($fileName);
 	}
-	
+
 	/**
 	 * Returns the 'file' parmeter. Left for legacy reasons.
 	 * @return string
