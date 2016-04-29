@@ -1,22 +1,29 @@
 <a name="inicio"></a>
-woocommerce-plugin
+WooCommerce- módulo Todo Pago (v2.3.5)
 ============
 
 Plug in para la integración con gateway de pago <strong>Todo Pago</strong>
 - [Consideraciones Generales](#consideracionesgenerales)
 - [Instalación](#instalacion)
-- [Configuración plugin](#confplugin)
+- [Configuración](#configuracion)
  - [Activación](#activacion)
- - [Configuración](#configuracion)
-- [Datos adiccionales para prevención de fraude](#cybersource) 
-- [Consulta de transacciones](#constrans)
-- [Devoluciones](#devoluciones)
+ - [Configuración plug in](#confplugin)
+ - [Formulario Hibrido](#formHibrido)
+ - [Obtener datos de configuracion](#getcredentials)
+- [Prevencion de Fraude](#cybersource)
+ - [Consideraciones generales](#cons_generales)
+ - [Consideraciones para vertical retail](#cons_retail)
+ - [Datos adiccionales para prevención de fraude](#prevfraudedatosadicionales) 
+- [Características](#features) 
+ - [Consulta de transacciones](#constrans)
+ - [Devoluciones](#devoluciones)
 - [Tablas de referencia](#tablas)
+- [Versiones disponibles](#availableversions)
 
 <a name="consideracionesgenerales"></a>
 ## Consideraciones Generales
 El plug in de pagos de <strong>Todo Pago</strong>, provee a las tiendas WooCommerce de un nuevo m&eacute;todo de pago, integrando la tienda al gateway de pago.
-La versión de este plug in esta testeada en PHP 5.4-5.3 y WordPress 3.7.5 con WooCommerce 2.3.5.
+La versión de este plug in esta testeada en PHP 5.3 en adelante y WordPress 3.7.5 con WooCommerce 2.3.5.
 
 <a name="instalacion"></a>
 ## Instalación
@@ -30,62 +37,56 @@ Descomentar: <em>extension=php_openssl.dll</em> del php.ini
 <br />
 [<sub>Volver a inicio</sub>](#inicio)
 
-<a name="confplugin"></a>
-##Configuración plugin
+<a name="configuracion"></a>
+##Configuración
 
 <a name="activacion"></a>
 ####Activación
 La activación se realiza como cualquier plugin de Wordpress: Desde Plugins -> Plugins instalados -> activar el plugin de nombre <strong>TodoPago para WooCommerce</strong>.<br />
 
-<a name="configuracion"></a>
-####Configuración
-Para llegar al menu de configuración del plugin ir a: <em>WooCommerce -> Ajustes</em> y seleccionar Finalizar Compra de la solapa de configuraciones que aparece en la parte superior. Entre los medios de pago aparecerá la opción de nombre <strong>Todopago</strong>.<br /> 
+<a name="confplugin"></a>
+####Configuración plug in
+Para llegar al menu de configuración del plugin ir a: <em>WooCommerce -> Ajustes</em> y seleccionar Finalizar Compra de la solapa de configuraciones que aparece en la parte superior. Entre los medios de pago aparecerá la opción de nombre <strong>Todopago</strong>.<br />
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/1-%20header%20gateway.png)</br>
 
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/1-%20header%20gateway.png)
-
-El Plug-in nos mostrará las siguientes secciones:<br />
-- [Configuración General](#configuraciongeneral)
-- [Ambiente de Developers](#ambientetesting)
-- [Ambiente de Producción](#ambienteproduccion)
-- [Estados del Pedido](#estadospedido)
-- [Status de las Operaciones](#statusoperaciones)
-
-<a name="configuraciongeneral"></a>
-<sub><em>Configuración General</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/2-%20configuracion%20general.png)
-
-<sub><em>Obtener las credenciales</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/9-credenciales.png)
-
-- La opción Habilitar/Deshabilitar permite la activación o no del medio de pago Todo Pago en el comercio.
-- La opción ambiente define si se toman los datos de Ambiente de Developers o de Ambiente de Producción.
-
-<a name="ambientetesting"></a>
-<sub><em>Ambiente de Developers</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.PNG)
-
-<a name="ambienteproduccion"></a>
-<sub><em>Ambiente de Producción</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/4-%20configuracion%20produccion.png)
-
-<a name="estadospedido"></a>
-<sub><em>Estados del Pedido</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/5-%20configuracion%20estados.png)
+<sub></br><em>Menú principal</em></br></sub>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/2-%20configuracion%20general.png)</br>
+<sub></br><em>Menú ambiente</em></br></sub>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.PNG)</br>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/4-%20configuracion%20produccion.png)</br>
+<sub></br><em>Meenú estados y menú servicios</em></br></sub>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/5-%20configuracion%20estados.png)</br>
 - Estado de transacción iniciada: Se setea luego de completar los datos de facturación y presionar el botón "Realizar el pedido".
 - Estado de transacción aprobada: Se setea luego de volver del formulario de pago de Todo Pago y se obtiene una confirmación del pago.
 - Estado de transacción rechazada: Se setea luego de volver del formulario de pago de Todo Pago y se obtiene un rechazo del pago.
-
-<a name="statusoperaciones"></a>
-<sub><em>Status de las Operaciones</em></sub><br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/6-%20status%20de%20las%20operaciones.png)
-<br />
-
+</br>
 [<sub>Volver a inicio</sub>](#inicio)
-<a name="tca"></a>
 
+<a name="formHibrido"></a>
+####Formulario Hibrido
+En la configuracion del plugin tambien estara la posibilidad de mostrarle al cliente el formulario de pago de TodoPago integrada en el sitio. 
+Para esto , en la configuracion se debe seleccionar la opcion Integrado en el campo de seleccion de fromulario
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/10-%20formulario%20hibrido.png)</br>
+<sub></br>Del lado del cliente el formulario se vera asi:</br></sub> 
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/11-%20formulario%20hibrido2.PNG)
+</br>
+[<sub>Volver a inicio</sub>](#inicio)
+
+<a name="getcredentials"></a>
+####Obtener datos de configuracion
+Se puede obtener los datos de configuracion del plugin con solo loguearte con tus credenciales de Todopago. </br>
+a. Ir a la opcion Obtener credenciales</br>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/9-credenciales.png) </br>
+b. Loguearse con el mail y password de Todopago.</br>
+c. Los datos se cargaran automaticamente en los campos Merchant ID y Security code en el ambiente correspondiente (Desarrollo o produccion ) y solo hay que hacer click en el boton guardar datos y listo.</br>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/3-%20configuracion%20developers.PNG)</br>
+[<sub>Volver a inicio</sub>](#inicio)
+
+<br />
 <a name="cybersource"></a>
 ## Prevención de Fraude
 - [Consideraciones Generales](#cons_generales)
+- [Consideraciones para vertical RETAIL](#cons_retail)
 
 <a name="cons_generales"></a>
 ####Consideraciones Generales (para todas las verticales, por defecto RETAIL)
@@ -121,24 +122,43 @@ Las consideración para el caso de empresas del rubro <strong>RETAIL</strong> so
 -- Provincia de envío: getStateCode($order -> shipping_state);
 -- Domicilio de envío: $order -> billing_address_1;
 ```
-
-<a name="constrans"></a>
-## Consulta de Transacciones
-Se puede consultar <strong>on line</strong> las características de la transacci&oacute;n en el sistema de Todo Pago al hacer click en el número de orden en la parte de Status de las Operaciones.<br />
-![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/6-%20status%20de%20las%20operaciones.png)
+ 
+<a name="prevfraudedatosadicionales" ></a>
+####Nuevos Atributos en los productos
+Para efectivizar la prevenci&oacute;n de fraude se han creado nuevos atributos de producto dentro de la categoria <em>"Prevenci&oacute;n de Fraude"</em>.</br> 
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/12-%20prevencion%20fraude.PNG)<br/>
+<sub></sub><br />
+<sub></br>Estos campos no son obligatorios aunque si requeridos para Control de Fraude</sub>
+<br />
 [<sub>Volver a inicio</sub>](#inicio)
+
+<a name="features"></a>
+## Características
+ - [Consulta de transacciones](#constrans)
+ - [Devoluciones](#devoluciones)
+ 
+<br />
+<a name="constrans" ></a>
+#### Consulta de Transacciones
+Se puede consultar <strong>on line</strong> las características de la transacci&oacute;n en el sistema de Todo Pago al hacer click en el número de orden en la parte de Status de las Operaciones.<br />
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/6-%20status%20de%20las%20operaciones.png)</br>
+![imagen de configuracion](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/7-%20detalle%20status.png)</br>
+<br />
+[<sub>Volver a inicio</sub>](#inicio)
+</br>
 
 <a name="devoluciones"></a>
-## Devoluciones
+#### Devoluciones
 Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual de WooCommerce. Para ello dirigirse en el menú a WooCommerce->Pedidos, "Ver" la orden deseada (Esta debe haber sido realizada con TodoPago) y encontrará una sección con el título **Pedido Productos**, dentro de esta hay un botón *Reembolso* al hacer click ahí nos solicitará el monto a reembolsar y nos dará la opción de *Reembolsar con TodoPago*.<br />
-![Devolución](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/8-%20devoluciones.PNG)<br />
+![Devolución](https://raw.githubusercontent.com/TodoPago/imagenes/master/woocommerce/8-%20devoluciones.PNG)<br/>
+<br />
 [<sub>Volver a inicio</sub>](#inicio)
+
 
 <a name="tablas"></a>
 ## Tablas de Referencia
 ######[Provincias](#p)
 ######[Tabla de errores](#codigoerrores)
-
 
 <a name="p"></a>
 <p>Provincias</p>
@@ -151,7 +171,7 @@ Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual
 <tr><td>Chubut</td><td>U</td></tr>
 <tr><td>Córdoba</td><td>X</td></tr>
 <tr><td>Corrientes</td><td>W</td></tr>
-<tr><td>Entre Ríos</td><td>R</td></tr>
+<tr><td>Entre Ríos</td><td>E</td></tr>
 <tr><td>Formosa</td><td>P</td></tr>
 <tr><td>Jujuy</td><td>Y</td></tr>
 <tr><td>La Pampa</td><td>L</td></tr>
@@ -169,6 +189,7 @@ Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual
 <tr><td>Tierra del Fuego</td><td>V</td></tr>
 <tr><td>Tucumán</td><td>T</td></tr>
 </table>
+[<sub>Volver a inicio</sub>](#inicio)
 
 <a name="codigoerrores"></a>  
 <p>Tabla de errores</p>  
@@ -224,4 +245,29 @@ Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual
 <tr><td>99998</td><td>Lo sentimos, la operación fue rechazada. Comunicate con la entidad emisora de la tarjeta para verificar el incoveniente o seleccioná otro medio de pago.</td></tr>
 <tr><td>99999</td><td>Lo sentimos, la operación no pudo completarse. Comunicate con la entidad emisora de la tarjeta para verificar el incoveniente o seleccioná otro medio de pago.</td></tr>
 </table>
+
+<a name="availableversions"></a>
+## Versiones Disponibles##
+<table>
+  <thead>
+    <tr>
+      <th>Version del Plugin</th>
+      <th>Estado</th>
+      <th>Versiones Compatibles</th>
+    </tr>
+  <thead>
+  <tbody>
+    <tr>
+      <td><a href="https://github.com/TodoPago/Plugin-WooCommerce/archive/master.zip">v2.3.5</a></td>
+      <td>Stable (Current version)</td>
+      <td>WordPress 3.7.5 <br />
+          WooCommerce 2.3.5
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+*Click on the links above for instructions on installing and configuring the module.*
+
+
 [<sub>Volver a inicio</sub>](#inicio)
