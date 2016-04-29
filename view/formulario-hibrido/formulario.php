@@ -11,7 +11,7 @@
 		<meta charset="UTF-8">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 		<script src="<?php echo "$env_url/resources/TPHybridForm-v0.1.js"; ?>"></script>
-		<link href="<?php echo " $form_dir/styles.css " ?>" rel="stylesheet" type="text/css">
+		<link href="<?php echo " $form_dir/todopago-formulario.css " ?>" rel="stylesheet" type="text/css">
 		<script>
 
 			$(window).load(function() {
@@ -118,7 +118,7 @@
 				</div>
 			</div>
 		</form>
-		<div id="tp-bt-wrapper" class="right">
+		<div id="tp-bt-wrapper" class="tp-right">
 			<button id="MY_btnConfirmarPago" class="tp-button button alt"></button>
 		</div>
 	</body>
@@ -129,8 +129,8 @@
 			callbackValidationErrorFunction: 'validationCollector',
 			callbackBilleteraFunction: 'billeteraPaymentResponse',
 			botonPagarConBilleteraId: 'MY_btnPagarConBilletera',
-			modalCssClass: 'modal-class',
-			modalContentCssClass: 'modal-content',
+			modalCssClass: 'tp-modal-class',
+			modalContentCssClass: 'tp-modal-content',
 			beforeRequest: 'initLoading',
 			afterRequest: 'stopLoading',
 			callbackCustomSuccessFunction: 'customPaymentSuccessResponse',

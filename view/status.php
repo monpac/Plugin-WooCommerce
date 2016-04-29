@@ -44,11 +44,7 @@
         tabla_db +="<th>$"+value.total+"</th>";
         tabla_db +="</tr>";
       });
-
       jQuery("#tabla_db").prepend(tabla_db);
-      jQuery('#tabla').dataTable({
-        "order": [[0,"desc"]]
-      }); 
     });
 
     function verstatus (order){
@@ -63,9 +59,7 @@
     }
 
   </script>
-  <?php
-    echo "<link rel='stylesheet' href='".plugins_url('../css/jquery.dataTables.css', __FILE__)."''>";
-  ?>
+
   <table id="tabla" class="display" cellspacing="0" width="100%">
 
     <thead>

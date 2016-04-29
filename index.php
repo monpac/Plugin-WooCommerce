@@ -6,7 +6,7 @@
     Author: Todo Pago
 */
 
-define('TODOPAGO_PLUGIN_VERSION','1.3.0');
+define('TODOPAGO_PLUGIN_VERSION','1.3.1');
 define('TP_FORM_EXTERNO', 'ext');
 define('TP_FORM_HIBRIDO', 'hib');
 define('TODOPAGO_DEVOLUCION_OK', 2011);
@@ -239,11 +239,8 @@ function woocommerce_todopago_init(){
             echo '<table class="form-table">';
             $this -> generate_settings_html(); //Generate the HTML For the settings form.
             echo '</table><br>';
-
-            $urlDataTables = plugins_url('js/jquery.dataTables.min.js', __FILE__);
-            $urlCredentials = plugins_url('js/credentials.js', __FILE__);
-            
-            echo '<script type="text/javascript" src="' . $urlDataTables . '"></script>';
+           
+            $urlCredentials = plugins_url('js/credentials.js', __FILE__);            
             echo '<script type="text/javascript" src="' . $urlCredentials . '"></script>';
 
             include_once dirname(__FILE__)."/view/status.php";
