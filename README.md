@@ -1,5 +1,5 @@
 <a name="inicio"></a>
-WooCommerce- módulo Todo Pago (v1.3.1)
+WooCommerce- módulo Todo Pago (v1.3.2)
 ============
 
 Plug in para la integración con gateway de pago <strong>Todo Pago</strong>
@@ -258,7 +258,7 @@ Es posible realizar devoluciones o reembolsos mediante el procedimiento habitual
   <thead>
   <tbody>
     <tr>
-      <td><a href="https://github.com/TodoPago/Plugin-WooCommerce/archive/master.zip">v1.3.1</a></td>
+      <td><a href="https://github.com/TodoPago/Plugin-WooCommerce/archive/master.zip">v1.3.2</a></td>
       <td>Stable (Current version)</td>
       <td>WordPress 3.7.5 <br />
           WooCommerce 2.3.5

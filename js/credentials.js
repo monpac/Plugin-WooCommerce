@@ -23,7 +23,8 @@ jQuery(function ($) {
                          setCredentials(data);  
                      },
                      error: function(data) {  
-                         alert(data);  
+                         console.log(data);
+                         alert("Verifique la conexion a internet y su proxy");
                      },
              });                    
         }); 

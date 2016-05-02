@@ -6,7 +6,7 @@
     Author: Todo Pago
 */
 
-define('TODOPAGO_PLUGIN_VERSION','1.3.1');
+define('TODOPAGO_PLUGIN_VERSION','1.3.2');
 define('TP_FORM_EXTERNO', 'ext');
 define('TP_FORM_HIBRIDO', 'hib');
 define('TODOPAGO_DEVOLUCION_OK', 2011);
@@ -42,6 +42,7 @@ function woocommerce_todopago_init(){
             $this -> init_settings(); //Carga en el array settings los valores de los campos persistidos de la base de datos
 
             //Datos generales
+            $this -> version          = $this -> settings['version'];
             $this -> title            = $this -> settings['title'];
             $this -> description      = $this -> settings['description'];
             $this -> ambiente         = $this -> settings['ambiente'];
@@ -98,6 +99,9 @@ function woocommerce_todopago_init(){
             require_once $woocommerce -> plugin_path() . '/includes/wc-order-functions.php';
 
             $this -> form_fields = array(
+                'version' => array(
+                    'title' => 'Version del plugin '.TODOPAGO_PLUGIN_VERSION,
+                    'type'=> 'title'),  
                 'enabled' => array(
                     'title' => 'Habilitar/Deshabilitar',
                     'type' => 'checkbox',
