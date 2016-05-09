@@ -6,7 +6,7 @@
     Author: Todo Pago
 */
 
-define('TODOPAGO_PLUGIN_VERSION','1.3.2');
+define('TODOPAGO_PLUGIN_VERSION','1.3.4');
 define('TP_FORM_EXTERNO', 'ext');
 define('TP_FORM_HIBRIDO', 'hib');
 define('TODOPAGO_DEVOLUCION_OK', 2011);

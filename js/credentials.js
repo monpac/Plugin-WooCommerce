@@ -22,9 +22,15 @@ jQuery(function ($) {
                      success: function(data) {  
                          setCredentials(data);  
                      },
-                     error: function(data) {  
-                         console.log(data);
-                         alert("Verifique la conexion a internet y su proxy");
+                     error: function(xhr, ajaxOptions, thrownError) {  
+                         console.log(xhr);
+                         
+                         switch (xhr.status) {
+                                 case 404: alert("Verifique la correcta instalación del plugin");
+                                           break;
+                                 default: alert("Verifique la conexion a internet y su proxy");
+                                          break;               
+                         }
                      },
              });                    
         }); 
@@ -42,16 +48,10 @@ jQuery(function ($) {
                 $("#woocommerce_todopago_http_header_prod").val(response.apikey);
                 $("#woocommerce_todopago_security_prod").val(response.security);
                 $("#woocommerce_todopago_merchant_id_prod").val(response.merchandid);
-                $("#woocommerce_todopago_http_header_test").val("");
-                $("#woocommerce_todopago_security_test").val("");
-                $("#woocommerce_todopago_merchant_id_test").val("");
             } else{ 
                 $("#woocommerce_todopago_http_header_test").val(response.apikey);
                 $("#woocommerce_todopago_security_test").val(response.security);
                 $("#woocommerce_todopago_merchant_id_test").val(response.merchandid);
-                $("#woocommerce_todopago_http_header_prod").val("");
-                $("#woocommerce_todopago_security_prod").val("");
-                $("#woocommerce_todopago_merchant_id_prod").val("");
             }
                 
            }

@@ -1,15 +1,15 @@
 <?php
-require_once(dirname(__FILE__).'\\..\\lib\\Data\\User.php');
-require_once(dirname(__FILE__).'\\..\\lib\\Sdk.php');
-require_once(dirname(__FILE__).'\\..\\lib\\Exception\\ConnectionException.php');
-require_once(dirname(__FILE__).'\\..\\lib\\Exception\\ResponseException.php');
-require_once(dirname(__FILE__).'\\..\\lib\\Exception\\Data\\EmptyFieldException.php');
+require_once(dirname(__FILE__).'/../lib/Data/User.php');
+require_once(dirname(__FILE__).'/../lib/Sdk.php');
+require_once(dirname(__FILE__).'/../lib/Exception/ConnectionException.php');
+require_once(dirname(__FILE__).'/../lib/Exception/ResponseException.php');
+require_once(dirname(__FILE__).'/../lib/Exception/Data/EmptyFieldException.php');
 
 use TodoPago\Data\User;
 use TodoPago\Sdk;
 use TodoPago\Exception\ConnectionException;
 use TodoPago\Exception\ResponseException;
-use TodoPago\Exception\Data\EmptyFieldException;
+use TodoPago\Exception\Data\EmptyFieldException; 
  
 
  if((isset($_POST['user']) && !empty($_POST['user'])) &&  (isset($_POST['password']) && !empty($_POST['password']))){
