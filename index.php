@@ -1,8 +1,8 @@
 <?php
 /*
-	Plugin Name: TodoPago para WooCommerce
+    Plugin Name: TodoPago para WooCommerce
     Description: TodoPago para Woocommerce.
-    Version: 1.3.0
+    Version: 1.3.4
     Author: Todo Pago
 */
 
@@ -116,7 +116,7 @@ function woocommerce_todopago_init(){
                     'title' => 'Descripción',
                     'type' => 'textarea',
                     'description' => 'Descripción que el usuario ve durante el checkout',
-                    'default' => 'Paga de manera segura mediante TodoPago<br>Solo para la república argentina'),
+                    'default' => 'Pagá de manera segura mediante TodoPago<br>Sólo para la República Argentina'),
                 'ambiente' => array(
                     'title' => 'Ambiente',
                     'type' => 'select',
@@ -144,7 +144,7 @@ function woocommerce_todopago_init(){
                 'deadline' => array(
                     'title' => 'Deadline',
                     'type'=> 'text',
-                    'description' => 'Dias maximos para la entrega'),
+                    'description' => 'Días maximos para la entrega'),
                 
                  'tipo_formulario' => array(
                     'title' => 'Elija el fromulario que desea utilizar',
@@ -365,7 +365,7 @@ debugger;
                     $merchant = $paramsSAR['operacion']['MERCHANT'];
                     $amount = $paramsSAR['operacion']['CSPTGRANDTOTALAMOUNT'];
                     $prk = $response_sar['PublicRequestKey'];
-	            $returnURL = 'http'.(isset($_SERVER['HTTPS']) ? 's' : '').'://'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
+                $returnURL = 'http'.(isset($_SERVER['HTTPS']) ? 's' : '').'://'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
                     $env_url = ($this->ambiente == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_ENDPOINT_TEST)."../../..";
 
                     require 'view/formulario-hibrido/formulario.php';
@@ -678,11 +678,11 @@ function todopago_update_db_check() {
 add_action('plugins_loaded', 'todopago_update_db_check');
 
 function my_init() {
-	
-		// comment out the next two lines to load the local copy of jQuery
-		wp_deregister_script('jquery'); 
-		wp_register_script('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js', false, '1.3.2'); 
-		wp_enqueue_script('jquery');
+    
+        // comment out the next two lines to load the local copy of jQuery
+        wp_deregister_script('jquery'); 
+        wp_register_script('jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js', false, '1.3.2'); 
+        wp_enqueue_script('jquery');
 }
 
 add_action('init', 'my_init');
